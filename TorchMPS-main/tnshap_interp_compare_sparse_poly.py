@@ -1,39 +1,42 @@
 #!/usr/bin/env python3
 """
-tnshap_interp_compare_sparse_poly.py
+tnshap_vandermonde_compare_sparse_poly.py
 
-Compare a path-integral / interpolation-style attribution (with feature masks)
-for:
+TN-SHAP-style Shapley computation using:
 
-  - The original sparse polynomial teacher (eval_fn_teacher)
+  - Diagonal evaluations in a scalar parameter t
+  - Chebyshev nodes in [0, 1]
+  - Vandermonde system to recover degree-wise aggregates
+  - A recurrence to extract per-feature degree aggregates β_{i,k}
+  - Shapley_i = sum_k β_{i,k} / k
+
+This is implemented generically for:
+
+  - The teacher (eval_fn_teacher)
   - The trained MPS surrogate (eval_fn_mps)
 
-We use:
-  - A straight-line path from baseline (0) to x
-  - Interpolation nodes t in [0, 1]
-  - For each feature i, we compare f(x_on(t)) vs f(x_off(t)):
-      x_on(t): point on path with feature i active
-      x_off(t): same path, but feature i forced to baseline
-
-Then we approximate:
-    phi_i  ≈  ∑_l w_l [ f(x_on(t_l)) - f(x_off(t_l)) ]
-
-This gives an Integrated-Gradients-style path attribution using
-"matrix selectors" (feature masking), applied identically to the
-teacher and the MPS.
-
-Run:
-    python tnshap_interp_compare_sparse_poly.py
+We:
+  - Load path-augmented training data and t-nodes from <prefix>_tnshap_targets.pt
+  - Compute R2 on that dataset for teacher and MPS
+  - Compute TN-SHAP on x_base (N_TARGETS points)
+  - Report mean/std of:
+      - correlation on S
+      - support accuracy (top-|S| vs true S) for teacher and MPS
+      - eval runtime
 """
 
+import argparse
 import math
+import time
+
 import torch
 from torchmps import MPS
 
 from poly_teacher import load_teacher, load_data, DEVICE
-from train_mps import r2_score
+from train_mps_paths import r2_score, chebyshev_nodes_unit_interval
 
-PREFIX = "poly"
+
+PREFIX_DEFAULT = "poly"
 
 
 # -----------------------
@@ -63,95 +66,136 @@ def load_mps(prefix: str) -> MPS:
 
 
 # -----------------------
-# Interpolation nodes (Chebyshev -> [0,1])
+# Vandermonde utilities
 # -----------------------
 
-def chebyshev_nodes_unit_interval(n_nodes: int, device=None, dtype=torch.float32):
+def build_vandermonde(t_nodes: torch.Tensor, degree_max: int) -> torch.Tensor:
     """
-    Chebyshev nodes of the first kind, mapped from [-1, 1] to [0, 1].
+    Build Vandermonde matrix V where:
 
-    Standard Chebyshev nodes in [-1, 1]:
-        u_k = cos((2k-1)/(2n) * pi),  k=1..n
+      V[l, k] = t_nodes[l] ** k
 
-    Map to t in [0,1] via: t = (u + 1) / 2.
+    for k = 0..degree_max and l = 0..n_nodes-1.
     """
-    if device is None:
-        device = DEVICE
-    k = torch.arange(1, n_nodes + 1, dtype=torch.float64, device=device)
-    u = torch.cos((2.0 * k - 1.0) / (2.0 * n_nodes) * torch.pi)  # [-1,1]
-    t = (u + 1.0) / 2.0  # [0,1]
-    return t.to(dtype)
+    t = t_nodes.to(dtype=torch.float64)
+    exponents = torch.arange(0, degree_max + 1, dtype=torch.float64, device=t.device)
+    V = t.unsqueeze(1) ** exponents.unsqueeze(0)
+    return V
+
+
+def solve_poly_coeffs(V: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """
+    Solve V c = y for the polynomial coefficients c, where V is Vandermonde
+    (n_nodes x (degree_max+1)), y is (n_nodes,).
+    """
+    V64 = V.to(dtype=torch.float64)
+    y64 = y.to(dtype=torch.float64)
+    c = torch.linalg.solve(V64, y64)
+    return c.to(dtype=torch.float32)
 
 
 # -----------------------
-# Path-integral attribution with feature selectors
+# Diagonal evaluations h(t), g_i(t)
 # -----------------------
 
-def compute_path_interp_attributions(
+def eval_h_on_nodes(eval_fn, x: torch.Tensor, t_nodes: torch.Tensor) -> torch.Tensor:
+    """
+    h(t) = f(t * x), evaluated on all t_nodes.
+
+    x: (D,)
+    t_nodes: (L,)
+    returns: (L,)
+    """
+    x = x.to(DEVICE)
+    t_nodes = t_nodes.to(x.device)
+    X_batch = (t_nodes.unsqueeze(1) * x.unsqueeze(0))  # (L, D)
+    with torch.no_grad():
+        y = eval_fn(X_batch)
+        if y.ndim > 1:
+            y = y.squeeze(-1)
+    return y
+
+
+def eval_g_i_on_nodes(eval_fn, x: torch.Tensor, i: int, t_nodes: torch.Tensor) -> torch.Tensor:
+    """
+    g_i(t) = f(x_i fixed, others scaled by t), evaluated on all t_nodes.
+
+    More precisely, for each t:
+
+      x_i(t)[j] = x[j] if j == i
+                  t * x[j] otherwise
+    """
+    x = x.to(DEVICE)
+    t_nodes = t_nodes.to(x.device)
+    D = x.shape[0]
+
+    X_scaled = t_nodes.unsqueeze(1) * x.unsqueeze(0)  # (L, D)
+    X_scaled[:, i] = x[i]  # clamp feature i
+
+    with torch.no_grad():
+        y = eval_fn(X_scaled)
+        if y.ndim > 1:
+            y = y.squeeze(-1)
+    return y
+
+
+# -----------------------
+# TN-SHAP via degree aggregates (Vandermonde + recurrence)
+# -----------------------
+
+def tnshap_vandermonde_for_point(
     eval_fn,
     x: torch.Tensor,
-    subset_indices,
-    baseline_val: float = 0.0,
-    n_nodes: int = 32,
+    max_degree: int,
+    t_nodes: torch.Tensor,
 ) -> torch.Tensor:
     """
-    Path-integral / interpolation-style attribution for a single point x.
+    Compute Shapley values φ_i for all features i at point x using:
 
-    Path: straight line from baseline (0) to x:
-        x(t) = baseline + t * (x - baseline) = t * x  (since baseline = 0)
+      - h(t) = f(t * x) -> coefficients α_k
+      - g_i(t) = f(x_i fixed, others scaled by t) -> coefficients γ_{i,k}
+      - Recurrence to get β_{i,k}
+      - φ_i = sum_k β_{i,k} / k
 
-    For each feature i:
-        - x_on(t)  = x(t) with feature i as in x(t)
-        - x_off(t) = x(t) but feature i forced to baseline (0)
-        - Delta_i(t) = f(x_on(t)) - f(x_off(t))
-
-    We approximate:
-        phi_i ≈ (1 / n_nodes) * sum_l Delta_i(t_l)
-    (simple Riemann sum; you can switch to quadrature weights if you want)
-
-    eval_fn: callable mapping (B, D) -> (B,)
-    x: (D,) tensor (single point)
-    subset_indices: list of feature indices we care about (e.g., S)
-    baseline_val: scalar for "off" features (here 0)
+    Assumes baseline is 0 (v(S) = f(x_S)).
     """
     x = x.to(DEVICE)
     D = x.shape[0]
-    J = list(subset_indices)
-    nJ = len(J)
 
-    # Interpolation nodes in [0,1]
-    t_nodes = chebyshev_nodes_unit_interval(n_nodes, device=x.device, dtype=x.dtype)
+    # Ensure we have at least max_degree+1 nodes
+    assert t_nodes.shape[0] >= max_degree + 1, "Need at least max_degree+1 t-nodes."
+    t_nodes_sq = t_nodes[: max_degree + 1]
+    V = build_vandermonde(t_nodes_sq, degree_max=max_degree)
+
+    # 1) h(t) = f(t*x)
+    h_vals = eval_h_on_nodes(eval_fn, x, t_nodes_sq)
+    alpha = solve_poly_coeffs(V, h_vals)  # (max_degree+1,)
+    alpha64 = alpha.to(torch.float64)
 
     phi_full = torch.zeros(D, device=DEVICE, dtype=torch.float32)
 
-    # Simple equal-weight Riemann sum; you can replace by proper Chebyshev weights if desired
-    weight = 1.0 / n_nodes
+    # 2) For each feature i, recover β_{i,k}
+    for i in range(D):
+        g_vals = eval_g_i_on_nodes(eval_fn, x, i, t_nodes_sq)
+        gamma = solve_poly_coeffs(V, g_vals)
+        gamma64 = gamma.to(torch.float64)
 
-    for i in J:
-        contrib_i = 0.0
+        beta = torch.zeros(max_degree + 1, dtype=torch.float64, device=x.device)
 
-        for t in t_nodes:
-            # Straight-line path: x(t) = t * x
-            xt = t * x
+        # k = max_degree: γ_d = α_d - β_d  => β_d = α_d - γ_d
+        beta[max_degree] = alpha64[max_degree] - gamma64[max_degree]
 
-            # x_on(t): full xt
-            x_on = xt
+        # k = max_degree-1 down to 1: γ_k = α_k + β_{k+1} - β_k => β_k = α_k + β_{k+1} - γ_k
+        for k in range(max_degree - 1, 0, -1):
+            beta[k] = alpha64[k] + beta[k + 1] - gamma64[k]
 
-            # x_off(t): same xt, but feature i masked to baseline
-            x_off = xt.clone()
-            x_off[i] = baseline_val
+        # consistency for k=0: γ_0 = α_0 + β_1 => β_1 = γ_0 - α_0
+        beta1_from_gamma0 = gamma64[0] - alpha64[0]
+        beta[1] = 0.5 * (beta[1] + beta1_from_gamma0)
 
-            X_batch = torch.stack([x_on, x_off], dim=0)  # (2, D)
-            with torch.no_grad():
-                y_batch = eval_fn(X_batch)               # (2,)
-                if y_batch.ndim > 1:
-                    y_batch = y_batch.squeeze(-1)
-            f_on, f_off = y_batch[0], y_batch[1]
-
-            Delta = f_on - f_off
-            contrib_i += weight * Delta
-
-        phi_full[i] = contrib_i
+        ks = torch.arange(1, max_degree + 1, dtype=torch.float64, device=x.device)
+        phi_i = torch.sum(beta[1:] / ks)
+        phi_full[i] = phi_i.to(torch.float32)
 
     return phi_full
 
@@ -160,16 +204,48 @@ def compute_path_interp_attributions(
 # Main comparison
 # -----------------------
 
+def list_mean_std(xs):
+    if len(xs) == 0:
+        return float("nan"), float("nan")
+    m = sum(xs) / len(xs)
+    var = sum((x - m) ** 2 for x in xs) / len(xs)
+    return m, math.sqrt(var)
+
+
 def main():
-    # Load teacher, data, and MPS
-    teacher = load_teacher(PREFIX)
-    x_train, y_train, x_test, y_test = load_data(PREFIX)
-    mps = load_mps(PREFIX)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prefix", type=str, default=PREFIX_DEFAULT,
+                        help="Prefix for teacher/MPS/targets files.")
+    parser.add_argument("--override-max-degree", type=int, default=None,
+                        help="If set, overrides max_degree saved in tnshap_targets.")
+    args = parser.parse_args()
 
-    x_test = x_test.to(DEVICE)
-    y_test = y_test.to(DEVICE)
+    prefix = args.prefix
+    print(f"Prefix: {prefix}")
 
-    # Two eval functions: one for exact polynomial, one for MPS surrogate
+    # ---------------------------------------------------------
+    # 1) Load TN-SHAP targets + t-nodes + training dataset
+    # ---------------------------------------------------------
+    targets = torch.load(f"{prefix}_tnshap_targets.pt", map_location=DEVICE)
+    X_targets = targets["x_base"].to(DEVICE)     # (N_TARGETS, D)
+    t_nodes   = targets["t_nodes"].to(DEVICE)    # (N_T_NODES,)
+    X_all     = targets["X_all"].to(DEVICE)      # ((1 + D)*N_base*N_T_NODES, D)
+    Y_all     = targets["Y_all"].to(DEVICE)      # same length
+    max_degree_saved = int(targets["max_degree"])
+
+    N_TARGETS = X_targets.shape[0]
+    D         = X_targets.shape[1]
+
+    max_degree = args.override_max_degree if args.override_max_degree is not None else max_degree_saved
+    max_degree = int(max_degree)
+    print(f"N_TARGETS={N_TARGETS}, D={D}, max_degree={max_degree}")
+
+    # ---------------------------------------------------------
+    # 2) Load teacher and MPS
+    # ---------------------------------------------------------
+    teacher = load_teacher(prefix)
+    mps = load_mps(prefix)
+
     def eval_fn_teacher(x_batch: torch.Tensor) -> torch.Tensor:
         x_batch = x_batch.to(DEVICE)
         with torch.no_grad():
@@ -181,52 +257,80 @@ def main():
         with torch.no_grad():
             return mps(x_aug).squeeze(-1)
 
-    # Active subset S from the teacher (true important features)
+    # ---------------------------------------------------------
+    # 3) Sanity: R2 of MPS vs TEACHER on THE SAME TN-SHAP TRAINING DATA
+    # ---------------------------------------------------------
+    with torch.no_grad():
+        y_teacher_all = eval_fn_teacher(X_all)   # teacher(X_all)
+        y_mps_all     = eval_fn_mps(X_all)       # mps(X_all)
+
+    r2_teacher = r2_score(Y_all, y_teacher_all)  # checks data consistency
+    r2_mps     = r2_score(Y_all, y_mps_all)
+
+    print(f"Teacher vs path-aug ground truth: R2 = {r2_teacher:.4f}")
+    print(f"MPS vs path-aug ground truth:     R2 = {r2_mps:.4f}")
+
+    # ---------------------------------------------------------
+    # 4) Shapley via TN-SHAP on TEACHER and MPS
+    # ---------------------------------------------------------
     S = teacher.S
-    print(f"Active subset S (teacher support): {S}")
+    print(f"Active subset S (size {len(S)}): {S}")
     k_active = len(S)
     S_set = set(S)
 
-    # Sanity: R2 of MPS vs teacher on test set
-    with torch.no_grad():
-        y_teacher = eval_fn_teacher(x_test)
-        y_mps = eval_fn_mps(x_test)
-    r2_teacher = r2_score(y_test, y_teacher)
-    r2_mps = r2_score(y_test, y_mps)
-    print(f"Teacher vs ground truth: R2 = {r2_teacher:.4f}")
-    print(f"MPS vs ground truth:     R2 = {r2_mps:.4f}")
-
-    # Choose a subset of test points for attribution comparison
-    N_TARGETS = 20
-    N_NODES = 32  # interpolation nodes on the path
-    X_targets = x_test[:N_TARGETS]
-
     phis_teacher_all = []
-    phis_mps_all = []
-    corrs = []
+    phis_mps_all     = []
+    corrs            = []
+    acc_teacher_list = []
+    acc_mps_list     = []
+    phi_min_list     = []
+    phi_max_list     = []
+
+    mse_h_list       = []
+    mse_g_mean_list  = []
+    mse_g_max_list   = []
+
+    eval_start = time.time()
 
     for idx in range(N_TARGETS):
-        x0 = X_targets[idx]
+        x0 = X_targets[idx]  # base point
 
-        phi_teacher = compute_path_interp_attributions(
+        # 1) Evaluate TN-SHAP
+        phi_teacher = tnshap_vandermonde_for_point(
             eval_fn_teacher,
             x0,
-            subset_indices=S,
-            baseline_val=0.0,
-            n_nodes=N_NODES,
+            max_degree=max_degree,
+            t_nodes=t_nodes,
         )
-        phi_mps = compute_path_interp_attributions(
+        phi_mps = tnshap_vandermonde_for_point(
             eval_fn_mps,
             x0,
-            subset_indices=S,
-            baseline_val=0.0,
-            n_nodes=N_NODES,
+            max_degree=max_degree,
+            t_nodes=t_nodes,
         )
 
         phis_teacher_all.append(phi_teacher.unsqueeze(0))
         phis_mps_all.append(phi_mps.unsqueeze(0))
 
-        # Correlation over active subset S only
+        # 2) Measure function error on queried paths
+        h_teacher = eval_h_on_nodes(eval_fn_teacher, x0, t_nodes)
+        h_mps     = eval_h_on_nodes(eval_fn_mps,     x0, t_nodes)
+        mse_h = torch.mean((h_teacher - h_mps) ** 2).item()
+
+        mse_g_list = []
+        for i in range(D):
+            g_teacher = eval_g_i_on_nodes(eval_fn_teacher, x0, i, t_nodes)
+            g_mps     = eval_g_i_on_nodes(eval_fn_mps,     x0, i, t_nodes)
+            mse_g_i = torch.mean((g_teacher - g_mps) ** 2).item()
+            mse_g_list.append(mse_g_i)
+
+        mse_g_mean = sum(mse_g_list) / len(mse_g_list)
+        mse_g_max  = max(mse_g_list)
+        mse_h_list.append(mse_h)
+        mse_g_mean_list.append(mse_g_mean)
+        mse_g_max_list.append(mse_g_max)
+
+        # 3) Correlation + support accuracy
         s_t = phi_teacher[S]
         s_m = phi_mps[S]
         if torch.std(s_t) < 1e-8 or torch.std(s_m) < 1e-8:
@@ -236,41 +340,79 @@ def main():
             corr = float(c.item())
         corrs.append(corr)
 
-        print(f"[Point {idx:02d}] Path-interp corr on S = {corr:.4f}")
+        top_teacher = torch.topk(phi_teacher.abs(), k_active).indices.tolist()
+        top_mps     = torch.topk(phi_mps.abs(),     k_active).indices.tolist()
 
-    phis_teacher_all = torch.cat(phis_teacher_all, dim=0)  # (N_TARGETS, D)
-    phis_mps_all = torch.cat(phis_mps_all, dim=0)          # (N_TARGETS, D)
+        correct_teacher = len(set(top_teacher) & S_set)
+        correct_mps     = len(set(top_mps)     & S_set)
 
-    # Average correlation
+        acc_teacher = correct_teacher / k_active
+        acc_mps     = correct_mps     / k_active
+
+        acc_teacher_list.append(acc_teacher)
+        acc_mps_list.append(acc_mps)
+
+        phi_norm_S = phi_teacher[S].abs()
+        phi_min = phi_norm_S.min().item()
+        phi_max = phi_norm_S.max().item()
+        phi_min_list.append(phi_min)
+        phi_max_list.append(phi_max)
+
+        print(
+            f"[Point {idx:02d}] "
+            f"corr={corr:.4f} | "
+            f"acc teacher={acc_teacher:.2f}, MPS={acc_mps:.2f} | "
+            f"MSE h={mse_h:.3e}, "
+            f"MSE g mean={mse_g_mean:.3e}, "
+            f"MSE g max={mse_g_max:.3e}"
+        )
+        print(
+            f"[Point {idx:02d}] "
+            f"|phi_teacher[S]| min={phi_min:.3e}, max={phi_max:.3e}"
+        )
+
+    eval_total_time = time.time() - eval_start
+    eval_time_per_point = eval_total_time / max(N_TARGETS, 1)
+
+    phis_teacher_all = torch.cat(phis_teacher_all, dim=0)
+    phis_mps_all     = torch.cat(phis_mps_all,     dim=0)
+
+    # Means/stds
     finite_corrs = [c for c in corrs if not math.isnan(c)]
-    mean_corr = sum(finite_corrs) / len(finite_corrs) if finite_corrs else float("nan")
+    mean_corr, std_corr = list_mean_std(finite_corrs)
 
-    print("\n==== Summary over targets (path-integral / interpolation attribution) ====")
-    print(f"Mean attribution correlation on S: {mean_corr:.4f}")
+    mean_acc_teacher, std_acc_teacher = list_mean_std(acc_teacher_list)
+    mean_acc_mps,     std_acc_mps     = list_mean_std(acc_mps_list)
 
-    # Support recovery: top-k_active by |phi| vs S, for teacher and MPS
-    correct_support_teacher = 0
-    correct_support_mps = 0
+    mean_mse_h,      std_mse_h      = list_mean_std(mse_h_list)
+    mean_mse_g_mean, std_mse_g_mean = list_mean_std(mse_g_mean_list)
+    mean_mse_g_max,  std_mse_g_max  = list_mean_std(mse_g_max_list)
 
-    for idx in range(N_TARGETS):
-        phi_t = phis_teacher_all[idx]
-        phi_m = phis_mps_all[idx]
+    mean_phi_min, std_phi_min = list_mean_std(phi_min_list)
+    mean_phi_max, std_phi_max = list_mean_std(phi_max_list)
 
-        top_teacher = torch.topk(phi_t.abs(), k_active).indices.tolist()
-        top_mps = torch.topk(phi_m.abs(), k_active).indices.tolist()
+    print("\n==== Summary over targets (TN-SHAP via Vandermonde compression) ====")
+    print(f"Mean attribution corr on S:      {mean_corr:.4f} ± {std_corr:.4f}")
+    print(f"Mean support acc on S (teacher): {mean_acc_teacher:.4f} ± {std_acc_teacher:.4f}")
+    print(f"Mean support acc on S (MPS):     {mean_acc_mps:.4f} ± {std_acc_mps:.4f}")
 
-        if set(top_teacher) == S_set:
-            correct_support_teacher += 1
-        if set(top_mps) == S_set:
-            correct_support_mps += 1
+    print(f"\nFunction MSE on paths (MPS vs teacher):")
+    print(f"  h(t):   mean={mean_mse_h:.3e} ± {std_mse_h:.3e}")
+    print(f"  g_i(t): mean MSE={mean_mse_g_mean:.3e} ± {std_mse_g_mean:.3e}")
+    print(f"          max MSE={mean_mse_g_max:.3e} ± {std_mse_g_max:.3e}")
 
-    print(f"Teacher path-attr support recovery (top-|S| == S): {correct_support_teacher}/{N_TARGETS}")
-    print(f"MPS path-attr support recovery (top-|S| == S):     {correct_support_mps}/{N_TARGETS}")
+    print(f"\n|phi_teacher[S]| stats:")
+    print(f"  min over S: mean={mean_phi_min:.3e} ± {std_phi_min:.3e}")
+    print(f"  max over S: mean={mean_phi_max:.3e} ± {std_phi_max:.3e}")
+
+    print(f"\nEvaluation runtime:")
+    print(f"  total:      {eval_total_time:.3f} sec")
+    print(f"  per point:  {eval_time_per_point:.6f} sec")
 
     print("\nDone. This script now gives you:")
-    print("- Interpolation/path-integral attributions using the TRUE function.")
-    print("- The SAME interpolation/path-integral attributions using the MPS (with feature masks).")
-    print("- A direct comparison of correlations and support recovery on S.")
+    print("- TN-SHAP on the TRUE teacher, on exactly the same base points and t-nodes.")
+    print("- TN-SHAP on the MPS, trained on exactly the same h/g_i path points.")
+    print("- Mean/std of correlation, support accuracy, path-MSE, and eval runtime.")
 
 
 if __name__ == "__main__":

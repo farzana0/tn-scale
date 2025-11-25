@@ -1,0 +1,6 @@
+Building teacher 'poly5' and data on device cuda ...
+Task: poly5
+True active set S (size 16): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+x_train shape: torch.Size([20, 50]), y_train shape: torch.Size([20])
+x_test  shape: torch.Size([20, 50]),  y_test  shape: torch.Size([20])
+Saved teacher and data with prefix 'poly5_D50_*.pt'

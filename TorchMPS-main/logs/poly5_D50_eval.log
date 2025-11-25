@@ -1,0 +1,30 @@
+=== TN-SHAP Vandermonde Eval for PREFIX=poly5_D50 ===
+Using N_TARGETS=20, D=50, max_degree=5
+Teacher vs path-aug ground truth: R2 = 1.0000
+MPS vs path-aug ground truth:     R2 = 0.9871
+Active subset S (teacher support): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+[Point 00] corr=0.9802 | acc teacher=1.00, MPS=0.81 | |phi_teacher[S]| min=7.960e-02, max=5.555e+00
+[Point 01] corr=0.9849 | acc teacher=1.00, MPS=0.75 | |phi_teacher[S]| min=3.130e-02, max=4.031e+00
+[Point 02] corr=0.8912 | acc teacher=1.00, MPS=0.62 | |phi_teacher[S]| min=4.358e-03, max=3.020e+00
+[Point 03] corr=0.9832 | acc teacher=1.00, MPS=0.81 | |phi_teacher[S]| min=2.851e-03, max=3.020e+00
+[Point 04] corr=0.9895 | acc teacher=1.00, MPS=0.69 | |phi_teacher[S]| min=7.087e-03, max=3.575e+00
+[Point 05] corr=0.9409 | acc teacher=1.00, MPS=0.75 | |phi_teacher[S]| min=1.944e-02, max=1.563e+00
+[Point 06] corr=0.8971 | acc teacher=1.00, MPS=0.62 | |phi_teacher[S]| min=4.260e-03, max=2.766e+00
+[Point 07] corr=0.9304 | acc teacher=1.00, MPS=0.75 | |phi_teacher[S]| min=3.203e-02, max=3.211e+00
+[Point 08] corr=0.9620 | acc teacher=1.00, MPS=0.88 | |phi_teacher[S]| min=9.208e-03, max=1.390e+00
+[Point 09] corr=0.9892 | acc teacher=1.00, MPS=0.69 | |phi_teacher[S]| min=8.605e-03, max=4.388e+00
+[Point 10] corr=0.9690 | acc teacher=1.00, MPS=0.81 | |phi_teacher[S]| min=7.177e-04, max=2.894e+00
+[Point 11] corr=0.9941 | acc teacher=1.00, MPS=0.75 | |phi_teacher[S]| min=2.852e-03, max=5.273e+00
+[Point 12] corr=0.9195 | acc teacher=1.00, MPS=0.75 | |phi_teacher[S]| min=1.366e-03, max=1.540e+00
+[Point 13] corr=0.9891 | acc teacher=1.00, MPS=0.62 | |phi_teacher[S]| min=5.979e-03, max=4.714e+00
+[Point 14] corr=0.9683 | acc teacher=1.00, MPS=0.62 | |phi_teacher[S]| min=1.948e-02, max=2.654e+00
+[Point 15] corr=0.9607 | acc teacher=1.00, MPS=0.69 | |phi_teacher[S]| min=5.635e-03, max=3.903e+00
+[Point 16] corr=0.9885 | acc teacher=1.00, MPS=0.81 | |phi_teacher[S]| min=1.120e-02, max=2.602e+00
+[Point 17] corr=0.9896 | acc teacher=1.00, MPS=0.94 | |phi_teacher[S]| min=1.519e-02, max=4.212e+00
+[Point 18] corr=0.9783 | acc teacher=1.00, MPS=0.62 | |phi_teacher[S]| min=7.376e-03, max=2.478e+00
+[Point 19] corr=0.9711 | acc teacher=1.00, MPS=0.69 | |phi_teacher[S]| min=1.249e-02, max=3.211e+00
+==== Shapley Support Accuracy on S ====
+Teacher Mean Acc: 1.0000
+Teacher Std:      0.0000
+MPS Mean Acc:     0.7344
+MPS Std:          0.0904

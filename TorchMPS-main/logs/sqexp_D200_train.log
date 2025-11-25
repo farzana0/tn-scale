@@ -1,0 +1,18 @@
+Device: cuda
+Prefix: sqexp_D200, max_degree=10, N_targets=20
+Using N_base=20 base points out of 20, D=200
+Using N_T_NODES=11 Chebyshev nodes in t for path augmentation.
+Generating path-augmented dataset...
+Path-augmented dataset size (h + g_i paths): 44220 points = (1 + D)*N_base*N_T_NODES
+
+Training MPS on path-augmented regression
+D_aug=201, bond_dim=60, N_train=44220 (no held-out test set)
+
+
+⚠️  Detected divergence (loss explosion).
+Stopping at epoch 1. Restoring best model from epoch 0 (MSE=inf, R²=-inf)
+
+⚠️ No best_state recorded; using last epoch parameters.
+Saved TN-SHAP targets and t-nodes to sqexp_D200_tnshap_targets.pt
+Saved trained MPS to sqexp_D200_mps.pt
+Done.

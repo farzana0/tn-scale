@@ -1,0 +1,108 @@
+Device: cuda
+Prefix: poly5_D300, max_degree=5, N_targets=20
+Using N_base=20 base points out of 20, D=300
+Using N_T_NODES=6 Chebyshev nodes in t for path augmentation.
+Generating path-augmented dataset...
+Path-augmented dataset size (h + g_i paths): 36120 points = (1 + D)*N_base*N_T_NODES
+
+Training MPS on path-augmented regression
+D_aug=301, bond_dim=60, N_train=36120 (no held-out test set)
+
+### Epoch 001 ###
+Train MSE: 11166.27120
+Train R2 (on path-augmented data): 0.6987
+Best so far: epoch 1, MSE=11166.27120, R²=0.6987, Improved
+Runtime so far: 20 sec
+
+### Epoch 002 ###
+Train MSE: 0.61017
+Train R2 (on path-augmented data): 0.9724
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, Improved
+Runtime so far: 41 sec
+
+### Epoch 003 ###
+Train MSE: 0.41897
+Train R2 (on path-augmented data): 0.9330
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, No improve
+Runtime so far: 61 sec
+
+### Epoch 004 ###
+Train MSE: 0.51896
+Train R2 (on path-augmented data): 0.7930
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, No improve
+Runtime so far: 83 sec
+
+### Epoch 005 ###
+Train MSE: 0.43928
+Train R2 (on path-augmented data): 0.9434
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, No improve
+Runtime so far: 103 sec
+
+### Epoch 006 ###
+Train MSE: 0.41651
+Train R2 (on path-augmented data): 0.9102
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, No improve
+Runtime so far: 124 sec
+
+### Epoch 007 ###
+Train MSE: 0.46096
+Train R2 (on path-augmented data): 0.9315
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, No improve
+Runtime so far: 144 sec
+
+### Epoch 008 ###
+Train MSE: 0.32580
+Train R2 (on path-augmented data): 0.9407
+Best so far: epoch 2, MSE=0.61017, R²=0.9724, No improve
+Runtime so far: 164 sec
+
+### Epoch 009 ###
+Train MSE: 0.35057
+Train R2 (on path-augmented data): 0.9812
+Best so far: epoch 9, MSE=0.35057, R²=0.9812, Improved
+Runtime so far: 185 sec
+
+### Epoch 010 ###
+Train MSE: 0.34035
+Train R2 (on path-augmented data): 0.8029
+Best so far: epoch 9, MSE=0.35057, R²=0.9812, No improve
+Runtime so far: 205 sec
+
+### Epoch 011 ###
+Train MSE: 0.84677
+Train R2 (on path-augmented data): 0.9325
+Best so far: epoch 9, MSE=0.35057, R²=0.9812, No improve
+Runtime so far: 225 sec
+
+### Epoch 012 ###
+Train MSE: 0.46764
+Train R2 (on path-augmented data): 0.9818
+Best so far: epoch 12, MSE=0.46764, R²=0.9818, Improved
+Runtime so far: 245 sec
+
+### Epoch 013 ###
+Train MSE: 0.32743
+Train R2 (on path-augmented data): 0.9661
+Best so far: epoch 12, MSE=0.46764, R²=0.9818, No improve
+Runtime so far: 265 sec
+
+### Epoch 014 ###
+Train MSE: 0.37401
+Train R2 (on path-augmented data): 0.9668
+Best so far: epoch 12, MSE=0.46764, R²=0.9818, No improve
+Runtime so far: 285 sec
+
+### Epoch 015 ###
+Train MSE: 0.50767
+Train R2 (on path-augmented data): 0.9499
+Best so far: epoch 12, MSE=0.46764, R²=0.9818, No improve
+Runtime so far: 306 sec
+
+
+⚠️  Detected divergence (loss explosion).
+Stopping at epoch 16. Restoring best model from epoch 12 (MSE=0.46764, R²=0.9818)
+
+Restored best MPS from epoch 12 (MSE=0.46764, R²=0.9818)
+Saved TN-SHAP targets and t-nodes to poly5_D300_tnshap_targets.pt
+Saved trained MPS to poly5_D300_mps.pt
+Done.

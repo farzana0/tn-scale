@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -e
+
+mkdir -p logs
+
+TASKS=("poly5" "poly10" "sqexp")
+DS=(50 100 200 300)
+
+N_TRAIN=20
+N_TEST=20
+N_TARGETS=20
+
+for task in "${TASKS[@]}"; do
+  for D in "${DS[@]}"; do
+
+    PREFIX="${task}_D${D}"
+
+    echo "==============================================="
+    echo "Task=${task}, D=${D}, PREFIX=${PREFIX}"
+    echo "==============================================="
+
+    # 1) Generate teacher & data
+    echo "[1/3] Generating teacher and data..."
+    python poly_teacher.py \
+      --prefix "${PREFIX}" \
+      --task "${task}" \
+      --D "${D}" \
+      --n-train "${N_TRAIN}" \
+      --n-test "${N_TEST}" \
+      --noise-std 0.0 \
+      --seed-base 0 \
+      > "logs/${PREFIX}_gen.log" 2>&1
+
+    # Choose max_degree for TN-SHAP interpolation
+    if [ "${task}" = "poly5" ]; then
+      MAX_DEG=5
+    elif [ "${task}" = "poly10" ]; then
+      MAX_DEG=10
+    else
+      MAX_DEG=10  # sqexp approx
+    fi
+
+    # 2) Train MPS
+    echo "[2/3] Training MPS..."
+    python train_mps_paths.py \
+      --prefix "${PREFIX}" \
+      --max-degree "${MAX_DEG}" \
+      --n-targets "${N_TARGETS}" \
+      --batch-size 100 \
+      --num-epochs 200 \
+      --bond-dim 60 \
+      --lr 1e-3 \
+      --l2-reg 0 \
+      > "logs/${PREFIX}_train.log" 2>&1
+
+    # 3) Evaluate TN-SHAP
+    echo "[3/3] Evaluating TN-SHAP..."
+    python tnshap_vandermonde_compare_sparse_poly.py \
+      --prefix "${PREFIX}" \
+      --max-degree "${MAX_DEG}" \
+      --n-targets "${N_TARGETS}" \
+      > "logs/${PREFIX}_eval.log" 2>&1
+
+    echo "Finished Task=${task}, D=${D}. Logs in logs/${PREFIX}_*.log"
+    echo
+
+  done
+done

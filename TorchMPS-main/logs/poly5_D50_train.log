@@ -1,0 +1,1215 @@
+Device: cuda
+Prefix: poly5_D50, max_degree=5, N_targets=20
+Using N_base=20 base points out of 20, D=50
+Using N_T_NODES=6 Chebyshev nodes in t for path augmentation.
+Generating path-augmented dataset...
+Path-augmented dataset size (h + g_i paths): 6120 points = (1 + D)*N_base*N_T_NODES
+
+Training MPS on path-augmented regression
+D_aug=51, bond_dim=60, N_train=6120 (no held-out test set)
+
+### Epoch 001 ###
+Train MSE: 0.45329
+Train R2 (on path-augmented data): 0.8419
+Best so far: epoch 1, MSE=0.45329, R²=0.8419, Improved
+Runtime so far: 1 sec
+
+### Epoch 002 ###
+Train MSE: 0.15790
+Train R2 (on path-augmented data): 0.8215
+Best so far: epoch 1, MSE=0.45329, R²=0.8419, No improve
+Runtime so far: 3 sec
+
+### Epoch 003 ###
+Train MSE: 0.12462
+Train R2 (on path-augmented data): 0.9104
+Best so far: epoch 3, MSE=0.12462, R²=0.9104, Improved
+Runtime so far: 4 sec
+
+### Epoch 004 ###
+Train MSE: 0.11072
+Train R2 (on path-augmented data): 0.8615
+Best so far: epoch 3, MSE=0.12462, R²=0.9104, No improve
+Runtime so far: 4 sec
+
+### Epoch 005 ###
+Train MSE: 0.10706
+Train R2 (on path-augmented data): 0.9239
+Best so far: epoch 5, MSE=0.10706, R²=0.9239, Improved
+Runtime so far: 5 sec
+
+### Epoch 006 ###
+Train MSE: 0.09453
+Train R2 (on path-augmented data): 0.9287
+Best so far: epoch 6, MSE=0.09453, R²=0.9287, Improved
+Runtime so far: 6 sec
+
+### Epoch 007 ###
+Train MSE: 0.08035
+Train R2 (on path-augmented data): 0.9376
+Best so far: epoch 7, MSE=0.08035, R²=0.9376, Improved
+Runtime so far: 7 sec
+
+### Epoch 008 ###
+Train MSE: 0.07241
+Train R2 (on path-augmented data): 0.9471
+Best so far: epoch 8, MSE=0.07241, R²=0.9471, Improved
+Runtime so far: 8 sec
+
+### Epoch 009 ###
+Train MSE: 0.07485
+Train R2 (on path-augmented data): 0.9250
+Best so far: epoch 8, MSE=0.07241, R²=0.9471, No improve
+Runtime so far: 9 sec
+
+### Epoch 010 ###
+Train MSE: 0.08835
+Train R2 (on path-augmented data): 0.9323
+Best so far: epoch 8, MSE=0.07241, R²=0.9471, No improve
+Runtime so far: 10 sec
+
+### Epoch 011 ###
+Train MSE: 0.08373
+Train R2 (on path-augmented data): 0.9505
+Best so far: epoch 11, MSE=0.08373, R²=0.9505, Improved
+Runtime so far: 10 sec
+
+### Epoch 012 ###
+Train MSE: 0.08171
+Train R2 (on path-augmented data): 0.9519
+Best so far: epoch 12, MSE=0.08171, R²=0.9519, Improved
+Runtime so far: 11 sec
+
+### Epoch 013 ###
+Train MSE: 0.07114
+Train R2 (on path-augmented data): 0.9288
+Best so far: epoch 12, MSE=0.08171, R²=0.9519, No improve
+Runtime so far: 12 sec
+
+### Epoch 014 ###
+Train MSE: 0.06351
+Train R2 (on path-augmented data): 0.9300
+Best so far: epoch 12, MSE=0.08171, R²=0.9519, No improve
+Runtime so far: 13 sec
+
+### Epoch 015 ###
+Train MSE: 0.06871
+Train R2 (on path-augmented data): 0.9551
+Best so far: epoch 15, MSE=0.06871, R²=0.9551, Improved
+Runtime so far: 14 sec
+
+### Epoch 016 ###
+Train MSE: 0.05575
+Train R2 (on path-augmented data): 0.9423
+Best so far: epoch 15, MSE=0.06871, R²=0.9551, No improve
+Runtime so far: 15 sec
+
+### Epoch 017 ###
+Train MSE: 0.05829
+Train R2 (on path-augmented data): 0.9607
+Best so far: epoch 17, MSE=0.05829, R²=0.9607, Improved
+Runtime so far: 16 sec
+
+### Epoch 018 ###
+Train MSE: 0.05707
+Train R2 (on path-augmented data): 0.9517
+Best so far: epoch 17, MSE=0.05829, R²=0.9607, No improve
+Runtime so far: 16 sec
+
+### Epoch 019 ###
+Train MSE: 0.05598
+Train R2 (on path-augmented data): 0.9406
+Best so far: epoch 17, MSE=0.05829, R²=0.9607, No improve
+Runtime so far: 17 sec
+
+### Epoch 020 ###
+Train MSE: 0.05463
+Train R2 (on path-augmented data): 0.9512
+Best so far: epoch 17, MSE=0.05829, R²=0.9607, No improve
+Runtime so far: 18 sec
+
+### Epoch 021 ###
+Train MSE: 0.04929
+Train R2 (on path-augmented data): 0.9453
+Best so far: epoch 17, MSE=0.05829, R²=0.9607, No improve
+Runtime so far: 19 sec
+
+### Epoch 022 ###
+Train MSE: 0.05164
+Train R2 (on path-augmented data): 0.9450
+Best so far: epoch 17, MSE=0.05829, R²=0.9607, No improve
+Runtime so far: 20 sec
+
+### Epoch 023 ###
+Train MSE: 0.04986
+Train R2 (on path-augmented data): 0.9627
+Best so far: epoch 23, MSE=0.04986, R²=0.9627, Improved
+Runtime so far: 21 sec
+
+### Epoch 024 ###
+Train MSE: 0.04754
+Train R2 (on path-augmented data): 0.9488
+Best so far: epoch 23, MSE=0.04986, R²=0.9627, No improve
+Runtime so far: 22 sec
+
+### Epoch 025 ###
+Train MSE: 0.05761
+Train R2 (on path-augmented data): 0.9447
+Best so far: epoch 23, MSE=0.04986, R²=0.9627, No improve
+Runtime so far: 22 sec
+
+### Epoch 026 ###
+Train MSE: 0.04890
+Train R2 (on path-augmented data): 0.9643
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, Improved
+Runtime so far: 23 sec
+
+### Epoch 027 ###
+Train MSE: 0.04606
+Train R2 (on path-augmented data): 0.9616
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 24 sec
+
+### Epoch 028 ###
+Train MSE: 0.04437
+Train R2 (on path-augmented data): 0.9626
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 25 sec
+
+### Epoch 029 ###
+Train MSE: 0.04283
+Train R2 (on path-augmented data): 0.9603
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 26 sec
+
+### Epoch 030 ###
+Train MSE: 0.04329
+Train R2 (on path-augmented data): 0.9596
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 27 sec
+
+### Epoch 031 ###
+Train MSE: 0.04870
+Train R2 (on path-augmented data): 0.9577
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 28 sec
+
+### Epoch 032 ###
+Train MSE: 0.04491
+Train R2 (on path-augmented data): 0.9414
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 29 sec
+
+### Epoch 033 ###
+Train MSE: 0.04626
+Train R2 (on path-augmented data): 0.9636
+Best so far: epoch 26, MSE=0.04890, R²=0.9643, No improve
+Runtime so far: 30 sec
+
+### Epoch 034 ###
+Train MSE: 0.03900
+Train R2 (on path-augmented data): 0.9681
+Best so far: epoch 34, MSE=0.03900, R²=0.9681, Improved
+Runtime so far: 30 sec
+
+### Epoch 035 ###
+Train MSE: 0.04387
+Train R2 (on path-augmented data): 0.9612
+Best so far: epoch 34, MSE=0.03900, R²=0.9681, No improve
+Runtime so far: 31 sec
+
+### Epoch 036 ###
+Train MSE: 0.04367
+Train R2 (on path-augmented data): 0.9604
+Best so far: epoch 34, MSE=0.03900, R²=0.9681, No improve
+Runtime so far: 32 sec
+
+### Epoch 037 ###
+Train MSE: 0.04193
+Train R2 (on path-augmented data): 0.9724
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, Improved
+Runtime so far: 33 sec
+
+### Epoch 038 ###
+Train MSE: 0.03770
+Train R2 (on path-augmented data): 0.9647
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 34 sec
+
+### Epoch 039 ###
+Train MSE: 0.04104
+Train R2 (on path-augmented data): 0.9665
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 35 sec
+
+### Epoch 040 ###
+Train MSE: 0.04331
+Train R2 (on path-augmented data): 0.9562
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 36 sec
+
+### Epoch 041 ###
+Train MSE: 0.03900
+Train R2 (on path-augmented data): 0.9648
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 36 sec
+
+### Epoch 042 ###
+Train MSE: 0.03844
+Train R2 (on path-augmented data): 0.9681
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 37 sec
+
+### Epoch 043 ###
+Train MSE: 0.04021
+Train R2 (on path-augmented data): 0.9613
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 38 sec
+
+### Epoch 044 ###
+Train MSE: 0.03921
+Train R2 (on path-augmented data): 0.9694
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 39 sec
+
+### Epoch 045 ###
+Train MSE: 0.03998
+Train R2 (on path-augmented data): 0.9719
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 40 sec
+
+### Epoch 046 ###
+Train MSE: 0.04048
+Train R2 (on path-augmented data): 0.9703
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 41 sec
+
+### Epoch 047 ###
+Train MSE: 0.03964
+Train R2 (on path-augmented data): 0.9672
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 42 sec
+
+### Epoch 048 ###
+Train MSE: 0.03593
+Train R2 (on path-augmented data): 0.9703
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 42 sec
+
+### Epoch 049 ###
+Train MSE: 0.03420
+Train R2 (on path-augmented data): 0.9680
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 43 sec
+
+### Epoch 050 ###
+Train MSE: 0.04193
+Train R2 (on path-augmented data): 0.9690
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 44 sec
+
+### Epoch 051 ###
+Train MSE: 0.03738
+Train R2 (on path-augmented data): 0.9666
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 45 sec
+
+### Epoch 052 ###
+Train MSE: 0.03597
+Train R2 (on path-augmented data): 0.9668
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 46 sec
+
+### Epoch 053 ###
+Train MSE: 0.03986
+Train R2 (on path-augmented data): 0.9608
+Best so far: epoch 37, MSE=0.04193, R²=0.9724, No improve
+Runtime so far: 47 sec
+
+### Epoch 054 ###
+Train MSE: 0.03700
+Train R2 (on path-augmented data): 0.9737
+Best so far: epoch 54, MSE=0.03700, R²=0.9737, Improved
+Runtime so far: 48 sec
+
+### Epoch 055 ###
+Train MSE: 0.03531
+Train R2 (on path-augmented data): 0.9714
+Best so far: epoch 54, MSE=0.03700, R²=0.9737, No improve
+Runtime so far: 48 sec
+
+### Epoch 056 ###
+Train MSE: 0.03468
+Train R2 (on path-augmented data): 0.9702
+Best so far: epoch 54, MSE=0.03700, R²=0.9737, No improve
+Runtime so far: 49 sec
+
+### Epoch 057 ###
+Train MSE: 0.03745
+Train R2 (on path-augmented data): 0.9728
+Best so far: epoch 54, MSE=0.03700, R²=0.9737, No improve
+Runtime so far: 50 sec
+
+### Epoch 058 ###
+Train MSE: 0.03499
+Train R2 (on path-augmented data): 0.9629
+Best so far: epoch 54, MSE=0.03700, R²=0.9737, No improve
+Runtime so far: 51 sec
+
+### Epoch 059 ###
+Train MSE: 0.03518
+Train R2 (on path-augmented data): 0.9677
+Best so far: epoch 54, MSE=0.03700, R²=0.9737, No improve
+Runtime so far: 52 sec
+
+### Epoch 060 ###
+Train MSE: 0.03436
+Train R2 (on path-augmented data): 0.9739
+Best so far: epoch 60, MSE=0.03436, R²=0.9739, Improved
+Runtime so far: 53 sec
+
+### Epoch 061 ###
+Train MSE: 0.03355
+Train R2 (on path-augmented data): 0.9752
+Best so far: epoch 61, MSE=0.03355, R²=0.9752, Improved
+Runtime so far: 54 sec
+
+### Epoch 062 ###
+Train MSE: 0.04068
+Train R2 (on path-augmented data): 0.9737
+Best so far: epoch 61, MSE=0.03355, R²=0.9752, No improve
+Runtime so far: 54 sec
+
+### Epoch 063 ###
+Train MSE: 0.03119
+Train R2 (on path-augmented data): 0.9702
+Best so far: epoch 61, MSE=0.03355, R²=0.9752, No improve
+Runtime so far: 55 sec
+
+### Epoch 064 ###
+Train MSE: 0.03210
+Train R2 (on path-augmented data): 0.9630
+Best so far: epoch 61, MSE=0.03355, R²=0.9752, No improve
+Runtime so far: 56 sec
+
+### Epoch 065 ###
+Train MSE: 0.03227
+Train R2 (on path-augmented data): 0.9742
+Best so far: epoch 61, MSE=0.03355, R²=0.9752, No improve
+Runtime so far: 57 sec
+
+### Epoch 066 ###
+Train MSE: 0.02837
+Train R2 (on path-augmented data): 0.9761
+Best so far: epoch 66, MSE=0.02837, R²=0.9761, Improved
+Runtime so far: 58 sec
+
+### Epoch 067 ###
+Train MSE: 0.03021
+Train R2 (on path-augmented data): 0.9791
+Best so far: epoch 67, MSE=0.03021, R²=0.9791, Improved
+Runtime so far: 59 sec
+
+### Epoch 068 ###
+Train MSE: 0.03125
+Train R2 (on path-augmented data): 0.9753
+Best so far: epoch 67, MSE=0.03021, R²=0.9791, No improve
+Runtime so far: 60 sec
+
+### Epoch 069 ###
+Train MSE: 0.02986
+Train R2 (on path-augmented data): 0.9794
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, Improved
+Runtime so far: 61 sec
+
+### Epoch 070 ###
+Train MSE: 0.03007
+Train R2 (on path-augmented data): 0.9760
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 61 sec
+
+### Epoch 071 ###
+Train MSE: 0.02929
+Train R2 (on path-augmented data): 0.9732
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 62 sec
+
+### Epoch 072 ###
+Train MSE: 0.02901
+Train R2 (on path-augmented data): 0.9771
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 63 sec
+
+### Epoch 073 ###
+Train MSE: 0.03011
+Train R2 (on path-augmented data): 0.9755
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 64 sec
+
+### Epoch 074 ###
+Train MSE: 0.03005
+Train R2 (on path-augmented data): 0.9769
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 65 sec
+
+### Epoch 075 ###
+Train MSE: 0.02840
+Train R2 (on path-augmented data): 0.9756
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 66 sec
+
+### Epoch 076 ###
+Train MSE: 0.03075
+Train R2 (on path-augmented data): 0.9630
+Best so far: epoch 69, MSE=0.02986, R²=0.9794, No improve
+Runtime so far: 67 sec
+
+### Epoch 077 ###
+Train MSE: 0.03123
+Train R2 (on path-augmented data): 0.9805
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, Improved
+Runtime so far: 67 sec
+
+### Epoch 078 ###
+Train MSE: 0.02831
+Train R2 (on path-augmented data): 0.9759
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 68 sec
+
+### Epoch 079 ###
+Train MSE: 0.02681
+Train R2 (on path-augmented data): 0.9768
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 69 sec
+
+### Epoch 080 ###
+Train MSE: 0.02631
+Train R2 (on path-augmented data): 0.9720
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 70 sec
+
+### Epoch 081 ###
+Train MSE: 0.02824
+Train R2 (on path-augmented data): 0.9763
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 71 sec
+
+### Epoch 082 ###
+Train MSE: 0.02748
+Train R2 (on path-augmented data): 0.9770
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 72 sec
+
+### Epoch 083 ###
+Train MSE: 0.02704
+Train R2 (on path-augmented data): 0.9776
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 73 sec
+
+### Epoch 084 ###
+Train MSE: 0.02596
+Train R2 (on path-augmented data): 0.9771
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 73 sec
+
+### Epoch 085 ###
+Train MSE: 0.02802
+Train R2 (on path-augmented data): 0.9790
+Best so far: epoch 77, MSE=0.03123, R²=0.9805, No improve
+Runtime so far: 74 sec
+
+### Epoch 086 ###
+Train MSE: 0.02618
+Train R2 (on path-augmented data): 0.9806
+Best so far: epoch 86, MSE=0.02618, R²=0.9806, Improved
+Runtime so far: 75 sec
+
+### Epoch 087 ###
+Train MSE: 0.02416
+Train R2 (on path-augmented data): 0.9823
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, Improved
+Runtime so far: 76 sec
+
+### Epoch 088 ###
+Train MSE: 0.02446
+Train R2 (on path-augmented data): 0.9819
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 77 sec
+
+### Epoch 089 ###
+Train MSE: 0.02658
+Train R2 (on path-augmented data): 0.9766
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 78 sec
+
+### Epoch 090 ###
+Train MSE: 0.03017
+Train R2 (on path-augmented data): 0.9818
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 79 sec
+
+### Epoch 091 ###
+Train MSE: 0.02433
+Train R2 (on path-augmented data): 0.9819
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 79 sec
+
+### Epoch 092 ###
+Train MSE: 0.02325
+Train R2 (on path-augmented data): 0.9808
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 80 sec
+
+### Epoch 093 ###
+Train MSE: 0.02250
+Train R2 (on path-augmented data): 0.9803
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 81 sec
+
+### Epoch 094 ###
+Train MSE: 0.02505
+Train R2 (on path-augmented data): 0.9810
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 82 sec
+
+### Epoch 095 ###
+Train MSE: 0.02354
+Train R2 (on path-augmented data): 0.9816
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 83 sec
+
+### Epoch 096 ###
+Train MSE: 0.02354
+Train R2 (on path-augmented data): 0.9792
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 84 sec
+
+### Epoch 097 ###
+Train MSE: 0.02549
+Train R2 (on path-augmented data): 0.9822
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 85 sec
+
+### Epoch 098 ###
+Train MSE: 0.02135
+Train R2 (on path-augmented data): 0.9815
+Best so far: epoch 87, MSE=0.02416, R²=0.9823, No improve
+Runtime so far: 85 sec
+
+### Epoch 099 ###
+Train MSE: 0.02239
+Train R2 (on path-augmented data): 0.9845
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, Improved
+Runtime so far: 86 sec
+
+### Epoch 100 ###
+Train MSE: 0.02470
+Train R2 (on path-augmented data): 0.9759
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 87 sec
+
+### Epoch 101 ###
+Train MSE: 0.02746
+Train R2 (on path-augmented data): 0.9796
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 88 sec
+
+### Epoch 102 ###
+Train MSE: 0.02475
+Train R2 (on path-augmented data): 0.9778
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 89 sec
+
+### Epoch 103 ###
+Train MSE: 0.02634
+Train R2 (on path-augmented data): 0.9779
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 90 sec
+
+### Epoch 104 ###
+Train MSE: 0.02466
+Train R2 (on path-augmented data): 0.9827
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 91 sec
+
+### Epoch 105 ###
+Train MSE: 0.02852
+Train R2 (on path-augmented data): 0.9699
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 91 sec
+
+### Epoch 106 ###
+Train MSE: 0.02481
+Train R2 (on path-augmented data): 0.9804
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 92 sec
+
+### Epoch 107 ###
+Train MSE: 0.02431
+Train R2 (on path-augmented data): 0.9803
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 93 sec
+
+### Epoch 108 ###
+Train MSE: 0.02351
+Train R2 (on path-augmented data): 0.9787
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 94 sec
+
+### Epoch 109 ###
+Train MSE: 0.02598
+Train R2 (on path-augmented data): 0.9796
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 95 sec
+
+### Epoch 110 ###
+Train MSE: 0.02500
+Train R2 (on path-augmented data): 0.9806
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 96 sec
+
+### Epoch 111 ###
+Train MSE: 0.02416
+Train R2 (on path-augmented data): 0.9786
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 97 sec
+
+### Epoch 112 ###
+Train MSE: 0.02303
+Train R2 (on path-augmented data): 0.9764
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 97 sec
+
+### Epoch 113 ###
+Train MSE: 0.02361
+Train R2 (on path-augmented data): 0.9793
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 98 sec
+
+### Epoch 114 ###
+Train MSE: 0.02219
+Train R2 (on path-augmented data): 0.9841
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 99 sec
+
+### Epoch 115 ###
+Train MSE: 0.02214
+Train R2 (on path-augmented data): 0.9827
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 100 sec
+
+### Epoch 116 ###
+Train MSE: 0.02094
+Train R2 (on path-augmented data): 0.9819
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 101 sec
+
+### Epoch 117 ###
+Train MSE: 0.02456
+Train R2 (on path-augmented data): 0.9793
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 102 sec
+
+### Epoch 118 ###
+Train MSE: 0.02382
+Train R2 (on path-augmented data): 0.9809
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 103 sec
+
+### Epoch 119 ###
+Train MSE: 0.02469
+Train R2 (on path-augmented data): 0.9787
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 104 sec
+
+### Epoch 120 ###
+Train MSE: 0.02704
+Train R2 (on path-augmented data): 0.9778
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 104 sec
+
+### Epoch 121 ###
+Train MSE: 0.02593
+Train R2 (on path-augmented data): 0.9810
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 105 sec
+
+### Epoch 122 ###
+Train MSE: 0.02097
+Train R2 (on path-augmented data): 0.9785
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 106 sec
+
+### Epoch 123 ###
+Train MSE: 0.02200
+Train R2 (on path-augmented data): 0.9804
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 107 sec
+
+### Epoch 124 ###
+Train MSE: 0.02256
+Train R2 (on path-augmented data): 0.9797
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 108 sec
+
+### Epoch 125 ###
+Train MSE: 0.02361
+Train R2 (on path-augmented data): 0.9834
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 109 sec
+
+### Epoch 126 ###
+Train MSE: 0.02241
+Train R2 (on path-augmented data): 0.9813
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 110 sec
+
+### Epoch 127 ###
+Train MSE: 0.02044
+Train R2 (on path-augmented data): 0.9831
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 110 sec
+
+### Epoch 128 ###
+Train MSE: 0.02194
+Train R2 (on path-augmented data): 0.9834
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 111 sec
+
+### Epoch 129 ###
+Train MSE: 0.02201
+Train R2 (on path-augmented data): 0.9799
+Best so far: epoch 99, MSE=0.02239, R²=0.9845, No improve
+Runtime so far: 112 sec
+
+### Epoch 130 ###
+Train MSE: 0.02094
+Train R2 (on path-augmented data): 0.9857
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, Improved
+Runtime so far: 113 sec
+
+### Epoch 131 ###
+Train MSE: 0.02064
+Train R2 (on path-augmented data): 0.9841
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 114 sec
+
+### Epoch 132 ###
+Train MSE: 0.02069
+Train R2 (on path-augmented data): 0.9827
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 115 sec
+
+### Epoch 133 ###
+Train MSE: 0.02035
+Train R2 (on path-augmented data): 0.9839
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 116 sec
+
+### Epoch 134 ###
+Train MSE: 0.02246
+Train R2 (on path-augmented data): 0.9801
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 116 sec
+
+### Epoch 135 ###
+Train MSE: 0.02074
+Train R2 (on path-augmented data): 0.9754
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 117 sec
+
+### Epoch 136 ###
+Train MSE: 0.02350
+Train R2 (on path-augmented data): 0.9798
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 118 sec
+
+### Epoch 137 ###
+Train MSE: 0.01973
+Train R2 (on path-augmented data): 0.9845
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 119 sec
+
+### Epoch 138 ###
+Train MSE: 0.02033
+Train R2 (on path-augmented data): 0.9854
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 120 sec
+
+### Epoch 139 ###
+Train MSE: 0.02021
+Train R2 (on path-augmented data): 0.9841
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 121 sec
+
+### Epoch 140 ###
+Train MSE: 0.01972
+Train R2 (on path-augmented data): 0.9810
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 122 sec
+
+### Epoch 141 ###
+Train MSE: 0.02264
+Train R2 (on path-augmented data): 0.9810
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 123 sec
+
+### Epoch 142 ###
+Train MSE: 0.02087
+Train R2 (on path-augmented data): 0.9821
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 124 sec
+
+### Epoch 143 ###
+Train MSE: 0.02100
+Train R2 (on path-augmented data): 0.9815
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 124 sec
+
+### Epoch 144 ###
+Train MSE: 0.02255
+Train R2 (on path-augmented data): 0.9832
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 125 sec
+
+### Epoch 145 ###
+Train MSE: 0.02269
+Train R2 (on path-augmented data): 0.9843
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 126 sec
+
+### Epoch 146 ###
+Train MSE: 0.01942
+Train R2 (on path-augmented data): 0.9768
+Best so far: epoch 130, MSE=0.02094, R²=0.9857, No improve
+Runtime so far: 127 sec
+
+### Epoch 147 ###
+Train MSE: 0.02194
+Train R2 (on path-augmented data): 0.9862
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, Improved
+Runtime so far: 128 sec
+
+### Epoch 148 ###
+Train MSE: 0.02038
+Train R2 (on path-augmented data): 0.9839
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 129 sec
+
+### Epoch 149 ###
+Train MSE: 0.01955
+Train R2 (on path-augmented data): 0.9814
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 130 sec
+
+### Epoch 150 ###
+Train MSE: 0.01924
+Train R2 (on path-augmented data): 0.9803
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 130 sec
+
+### Epoch 151 ###
+Train MSE: 0.02233
+Train R2 (on path-augmented data): 0.9851
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 131 sec
+
+### Epoch 152 ###
+Train MSE: 0.02026
+Train R2 (on path-augmented data): 0.9822
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 132 sec
+
+### Epoch 153 ###
+Train MSE: 0.02125
+Train R2 (on path-augmented data): 0.9819
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 133 sec
+
+### Epoch 154 ###
+Train MSE: 0.01965
+Train R2 (on path-augmented data): 0.9805
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 134 sec
+
+### Epoch 155 ###
+Train MSE: 0.02003
+Train R2 (on path-augmented data): 0.9829
+Best so far: epoch 147, MSE=0.02194, R²=0.9862, No improve
+Runtime so far: 135 sec
+
+### Epoch 156 ###
+Train MSE: 0.01909
+Train R2 (on path-augmented data): 0.9869
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, Improved
+Runtime so far: 136 sec
+
+### Epoch 157 ###
+Train MSE: 0.01755
+Train R2 (on path-augmented data): 0.9852
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 136 sec
+
+### Epoch 158 ###
+Train MSE: 0.01862
+Train R2 (on path-augmented data): 0.9832
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 137 sec
+
+### Epoch 159 ###
+Train MSE: 0.01981
+Train R2 (on path-augmented data): 0.9851
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 138 sec
+
+### Epoch 160 ###
+Train MSE: 0.01839
+Train R2 (on path-augmented data): 0.9857
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 139 sec
+
+### Epoch 161 ###
+Train MSE: 0.02056
+Train R2 (on path-augmented data): 0.9798
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 140 sec
+
+### Epoch 162 ###
+Train MSE: 0.01935
+Train R2 (on path-augmented data): 0.9842
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 141 sec
+
+### Epoch 163 ###
+Train MSE: 0.01918
+Train R2 (on path-augmented data): 0.9841
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 142 sec
+
+### Epoch 164 ###
+Train MSE: 0.01850
+Train R2 (on path-augmented data): 0.9822
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 143 sec
+
+### Epoch 165 ###
+Train MSE: 0.01940
+Train R2 (on path-augmented data): 0.9826
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 143 sec
+
+### Epoch 166 ###
+Train MSE: 0.02223
+Train R2 (on path-augmented data): 0.9834
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 144 sec
+
+### Epoch 167 ###
+Train MSE: 0.02012
+Train R2 (on path-augmented data): 0.9826
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 145 sec
+
+### Epoch 168 ###
+Train MSE: 0.01875
+Train R2 (on path-augmented data): 0.9849
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 146 sec
+
+### Epoch 169 ###
+Train MSE: 0.01940
+Train R2 (on path-augmented data): 0.9826
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 147 sec
+
+### Epoch 170 ###
+Train MSE: 0.01927
+Train R2 (on path-augmented data): 0.9841
+Best so far: epoch 156, MSE=0.01909, R²=0.9869, No improve
+Runtime so far: 148 sec
+
+### Epoch 171 ###
+Train MSE: 0.01813
+Train R2 (on path-augmented data): 0.9871
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, Improved
+Runtime so far: 149 sec
+
+### Epoch 172 ###
+Train MSE: 0.01789
+Train R2 (on path-augmented data): 0.9851
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 149 sec
+
+### Epoch 173 ###
+Train MSE: 0.02147
+Train R2 (on path-augmented data): 0.9813
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 150 sec
+
+### Epoch 174 ###
+Train MSE: 0.01868
+Train R2 (on path-augmented data): 0.9858
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 151 sec
+
+### Epoch 175 ###
+Train MSE: 0.01820
+Train R2 (on path-augmented data): 0.9830
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 152 sec
+
+### Epoch 176 ###
+Train MSE: 0.01967
+Train R2 (on path-augmented data): 0.9795
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 153 sec
+
+### Epoch 177 ###
+Train MSE: 0.01879
+Train R2 (on path-augmented data): 0.9849
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 154 sec
+
+### Epoch 178 ###
+Train MSE: 0.01762
+Train R2 (on path-augmented data): 0.9843
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 155 sec
+
+### Epoch 179 ###
+Train MSE: 0.01838
+Train R2 (on path-augmented data): 0.9841
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 156 sec
+
+### Epoch 180 ###
+Train MSE: 0.01796
+Train R2 (on path-augmented data): 0.9845
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 156 sec
+
+### Epoch 181 ###
+Train MSE: 0.01848
+Train R2 (on path-augmented data): 0.9861
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 157 sec
+
+### Epoch 182 ###
+Train MSE: 0.01775
+Train R2 (on path-augmented data): 0.9858
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 158 sec
+
+### Epoch 183 ###
+Train MSE: 0.01794
+Train R2 (on path-augmented data): 0.9866
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 159 sec
+
+### Epoch 184 ###
+Train MSE: 0.01738
+Train R2 (on path-augmented data): 0.9838
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 160 sec
+
+### Epoch 185 ###
+Train MSE: 0.01671
+Train R2 (on path-augmented data): 0.9825
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 161 sec
+
+### Epoch 186 ###
+Train MSE: 0.01683
+Train R2 (on path-augmented data): 0.9853
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 162 sec
+
+### Epoch 187 ###
+Train MSE: 0.01667
+Train R2 (on path-augmented data): 0.9869
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 162 sec
+
+### Epoch 188 ###
+Train MSE: 0.01846
+Train R2 (on path-augmented data): 0.9819
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 163 sec
+
+### Epoch 189 ###
+Train MSE: 0.01901
+Train R2 (on path-augmented data): 0.9791
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 164 sec
+
+### Epoch 190 ###
+Train MSE: 0.02110
+Train R2 (on path-augmented data): 0.9770
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 165 sec
+
+### Epoch 191 ###
+Train MSE: 0.01919
+Train R2 (on path-augmented data): 0.9850
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 166 sec
+
+### Epoch 192 ###
+Train MSE: 0.01818
+Train R2 (on path-augmented data): 0.9834
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 167 sec
+
+### Epoch 193 ###
+Train MSE: 0.01834
+Train R2 (on path-augmented data): 0.9802
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 168 sec
+
+### Epoch 194 ###
+Train MSE: 0.02001
+Train R2 (on path-augmented data): 0.9763
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 168 sec
+
+### Epoch 195 ###
+Train MSE: 0.02110
+Train R2 (on path-augmented data): 0.9823
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 169 sec
+
+### Epoch 196 ###
+Train MSE: 0.01726
+Train R2 (on path-augmented data): 0.9845
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 170 sec
+
+### Epoch 197 ###
+Train MSE: 0.01870
+Train R2 (on path-augmented data): 0.9864
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 171 sec
+
+### Epoch 198 ###
+Train MSE: 0.01646
+Train R2 (on path-augmented data): 0.9855
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 172 sec
+
+### Epoch 199 ###
+Train MSE: 0.01865
+Train R2 (on path-augmented data): 0.9832
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 173 sec
+
+### Epoch 200 ###
+Train MSE: 0.01734
+Train R2 (on path-augmented data): 0.9856
+Best so far: epoch 171, MSE=0.01813, R²=0.9871, No improve
+Runtime so far: 174 sec
+
+
+Restored best MPS from epoch 171 (MSE=0.01813, R²=0.9871)
+Saved TN-SHAP targets and t-nodes to poly5_D50_tnshap_targets.pt
+Saved trained MPS to poly5_D50_mps.pt
+Done.
