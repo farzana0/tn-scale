@@ -4,13 +4,16 @@ set -e
 mkdir -p logs
 
 TASKS=("poly5" "poly10" "sqexp")
-DS=(50)   # Only consider D = 50, 100
+DS=(50 100)   # Only consider D = 50, 100
 
 # Total number of datapoints
-N_TOTAL=10
+N_TOTAL=1
 N_TEST=0         # 5% of all datapoints as test set
-N_TRAIN=10     # remaining as train
-N_TARGETS=10    # calculate Shap on 100 datapoints
+N_TRAIN=1     # remaining as train
+N_TARGETS=1    # calculate Shap on 100 datapoints
+
+# Seed for reproducibility (change this to get different random splits)
+SEED_BASE=42
 
 for task in "${TASKS[@]}"; do
   for D in "${DS[@]}"; do
@@ -30,7 +33,7 @@ for task in "${TASKS[@]}"; do
       --n-train "${N_TRAIN}" \
       --n-test "${N_TEST}" \
       --noise-std 0.0 \
-      --seed-base 0 \
+      --seed-base "${SEED_BASE}" \
       > "logs/${PREFIX}_gen.log" 
 
     # Choose max_degree for TN-SHAP interpolation
@@ -48,10 +51,10 @@ for task in "${TASKS[@]}"; do
       --prefix "${PREFIX}" \
       --max-degree "${MAX_DEG}" \
       --n-targets "${N_TARGETS}" \
-      --batch-size 16 \
-      --num-epochs 10 \
-      --bond-dim 30 \
-      --lr 1e-3 \
+      --batch-size 306 \
+      --num-epochs 150 \
+      --bond-dim 20 \
+      --lr 1e-4 \
       --l2-reg 0 \
       --lr-factor 0.8 \
       --lr-patience 3 \
