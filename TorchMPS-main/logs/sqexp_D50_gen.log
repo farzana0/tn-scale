@@ -1,6 +1,6 @@
 Building teacher 'sqexp' and data on device cuda ...
 Task: sqexp
 True active set S (size 16): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-x_train shape: torch.Size([20, 50]), y_train shape: torch.Size([20])
-x_test  shape: torch.Size([20, 50]),  y_test  shape: torch.Size([20])
+x_train shape: torch.Size([10, 50]), y_train shape: torch.Size([10])
+x_test  shape: torch.Size([0, 50]),  y_test  shape: torch.Size([0])
 Saved teacher and data with prefix 'sqexp_D50_*.pt'

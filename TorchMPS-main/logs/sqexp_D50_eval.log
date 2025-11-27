@@ -1,30 +1,24 @@
 === TN-SHAP Vandermonde Eval for PREFIX=sqexp_D50 ===
-Using N_TARGETS=20, D=50, max_degree=10
+Using N_TARGETS=10, D=50, max_degree=5
+feature_map (targets metadata): local_x_then_one
 Teacher vs path-aug ground truth: R2 = 1.0000
-MPS vs path-aug ground truth:     R2 = 0.9968
+MPS vs path-aug ground truth:     R2 = 0.9398
 Active subset S (teacher support): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-[Point 00] corr=0.2505 | acc teacher=1.00, MPS=0.38 | |phi_teacher[S]| min=2.802e+02, max=6.230e+03
-[Point 01] corr=0.4995 | acc teacher=1.00, MPS=0.38 | |phi_teacher[S]| min=1.567e+00, max=1.648e+03
-[Point 02] corr=-0.2499 | acc teacher=1.00, MPS=0.19 | |phi_teacher[S]| min=1.585e-02, max=7.009e+01
-[Point 03] corr=0.2124 | acc teacher=1.00, MPS=0.38 | |phi_teacher[S]| min=1.127e+01, max=1.875e+03
-[Point 04] corr=0.2301 | acc teacher=1.00, MPS=0.44 | |phi_teacher[S]| min=1.433e+00, max=4.719e+02
-[Point 05] corr=0.2995 | acc teacher=1.00, MPS=0.44 | |phi_teacher[S]| min=1.143e+01, max=4.722e+02
-[Point 06] corr=0.0981 | acc teacher=1.00, MPS=0.38 | |phi_teacher[S]| min=4.042e-01, max=8.009e+01
-[Point 07] corr=0.3643 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=2.572e+00, max=9.456e+01
-[Point 08] corr=0.0738 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=3.143e+00, max=2.746e+02
-[Point 09] corr=-0.2141 | acc teacher=1.00, MPS=0.12 | |phi_teacher[S]| min=5.126e-02, max=5.386e+01
-[Point 10] corr=-0.1095 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=1.367e+00, max=9.902e+01
-[Point 11] corr=0.2239 | acc teacher=1.00, MPS=0.12 | |phi_teacher[S]| min=5.537e-02, max=9.831e+01
-[Point 12] corr=0.2405 | acc teacher=1.00, MPS=0.19 | |phi_teacher[S]| min=7.639e-01, max=1.416e+02
-[Point 13] corr=0.1411 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=8.115e-02, max=2.918e+02
-[Point 14] corr=0.0180 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=1.092e+00, max=1.941e+02
-[Point 15] corr=0.0455 | acc teacher=1.00, MPS=0.44 | |phi_teacher[S]| min=1.651e+00, max=4.028e+02
-[Point 16] corr=0.0877 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=1.045e+01, max=3.634e+02
-[Point 17] corr=0.1722 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=4.659e-01, max=6.332e+02
-[Point 18] corr=0.5093 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=1.607e-01, max=9.015e+01
-[Point 19] corr=0.3398 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=3.600e-01, max=1.687e+02
+[Point 00] corr=0.0157 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=1.948e+02, max=2.379e+03 | t_teacher=66.61 ms, t_mps=857.31 ms
+[Point 01] corr=-0.3578 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=1.661e+00, max=1.754e+02 | t_teacher=64.55 ms, t_mps=693.62 ms
+[Point 02] corr=-0.3114 | acc teacher=1.00, MPS=0.19 | |phi_teacher[S]| min=2.005e-02, max=3.976e+01 | t_teacher=30.27 ms, t_mps=403.88 ms
+[Point 03] corr=-0.0042 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=1.860e-01, max=2.491e+02 | t_teacher=29.25 ms, t_mps=404.98 ms
+[Point 04] corr=0.5935 | acc teacher=1.00, MPS=0.19 | |phi_teacher[S]| min=3.901e-02, max=8.111e+01 | t_teacher=29.18 ms, t_mps=404.32 ms
+[Point 05] corr=0.5978 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=1.057e+00, max=8.350e+01 | t_teacher=29.37 ms, t_mps=405.30 ms
+[Point 06] corr=0.2161 | acc teacher=1.00, MPS=0.06 | |phi_teacher[S]| min=1.947e-01, max=4.449e+01 | t_teacher=29.26 ms, t_mps=407.43 ms
+[Point 07] corr=0.2844 | acc teacher=1.00, MPS=0.31 | |phi_teacher[S]| min=1.145e+00, max=4.977e+01 | t_teacher=29.23 ms, t_mps=404.98 ms
+[Point 08] corr=0.2985 | acc teacher=1.00, MPS=0.19 | |phi_teacher[S]| min=7.694e-01, max=7.918e+01 | t_teacher=29.08 ms, t_mps=403.95 ms
+[Point 09] corr=0.4880 | acc teacher=1.00, MPS=0.25 | |phi_teacher[S]| min=1.656e-02, max=3.530e+01 | t_teacher=29.18 ms, t_mps=403.66 ms
 ==== Shapley Support Accuracy on S ====
 Teacher Mean Acc: 1.0000
 Teacher Std:      0.0000
-MPS Mean Acc:     0.3000
-MPS Std:          0.0964
+MPS Mean Acc:     0.2313
+MPS Std:          0.0782
+==== Per-point TN-SHAP evaluation time ====
+Teacher TN-SHAP: mean = 36.60 ms, std = 15.29 ms
+MPS TN-SHAP:     mean = 478.94 ms, std = 160.98 ms

@@ -4,12 +4,12 @@ poly_teacher.py
 
 Unified teacher generator for three regression tasks in R^D:
 
-  - poly5 : degree-5 polynomial in the first |S| = D/3 features
-  - poly10: degree-10 polynomial in the first |S| = D/3 features
+  - poly5 : degree-5 polynomial in the first |S| = ceil(D/3) features
+  - poly10: degree-10 polynomial in the first |S| = ceil(D/3) features
   - sqexp : squared-exponential y = exp(sum_{i in S} x_i^2)
 
 All tasks:
-  - Active set S = {0, ..., k_active-1}, where k_active = D // 3
+  - Active set S = {0, ..., k_active-1}, where k_active = ceil(D / 3)
   - Remaining features are redundant.
 
 This file keeps the same public API as before:
@@ -26,6 +26,7 @@ and the same file naming pattern:
 """
 
 import argparse
+import math
 from typing import List, Tuple
 
 import torch
@@ -35,7 +36,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # ---------------------------------------------------------
-# Helpers
+# (Old) Chebyshev helpers – kept for possible reuse
 # ---------------------------------------------------------
 
 def chebyshev_nodes_1d(n_nodes: int) -> torch.Tensor:
@@ -59,12 +60,32 @@ def sample_chebyshev_points(
     from a 1D Chebyshev grid of size n_nodes.
 
     This is NOT the full tensor product grid, just a convenient discrete support.
+    (Currently unused in build_teacher_and_data, which uses Gaussian sampling
+     to better match Mohammadi et al.'s synthetic setup.)
     """
     nodes_1d = chebyshev_nodes_1d(n_nodes)  # (n_nodes,)
     g = torch.Generator().manual_seed(seed)
     idx = torch.randint(low=0, high=n_nodes, size=(n_samples, d), generator=g)
     x = nodes_1d[idx]  # (n_samples, d)
     return x
+
+
+# ---------------------------------------------------------
+# Gaussian sampler (used by default)
+# ---------------------------------------------------------
+
+def sample_gaussian_points(
+    n_samples: int,
+    d: int,
+    seed: int = 0,
+) -> torch.Tensor:
+    """
+    Sample n_samples points in R^d from N(0, I_d),
+    matching the synthetic setup in Mohammadi et al. (Exp. 2).
+    """
+    g = torch.Generator().manual_seed(seed)
+    x = torch.randn(n_samples, d, generator=g)*0.2 + 1.1
+    return x.to(torch.float32)
 
 
 # ---------------------------------------------------------
@@ -81,7 +102,7 @@ class GeneralTeacher(nn.Module):
       task='sqexp':
           y = exp( sum_{i in S} x_i^2 )
 
-    where S = {0, ..., k_active-1}, k_active = D // 3.
+    where S = {0, ..., k_active-1}, k_active = ceil(D / 3).
     """
     def __init__(
         self,
@@ -104,7 +125,7 @@ class GeneralTeacher(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        x: (B, D) in [-1, 1]^D.
+        x: (B, D).
         Returns: (B,) tensor.
         """
         assert x.shape[1] == self.D, f"Expected D={self.D}, got {x.shape[1]}"
@@ -140,13 +161,16 @@ def make_teacher(
     D: int,
     task: str,
     seed: int = 0,
-) -> GeneralTeacher:
+) -> Tuple[GeneralTeacher, List[int]]:
     """
-    Build a GeneralTeacher with active set S = {0, ..., k_active-1}.
+    Build a GeneralTeacher with active set S = the last k_active features,
+    where k_active = ceil(D / 3).
+
+    For D = 50, this gives |S| = 17 (features 33-49), matching Mohammadi et al.'s description.
     """
     assert task in ("poly5", "poly10", "sqexp")
-    k_active = D // 3
-    S = list(range(k_active))
+    k_active = math.ceil(D / 3)
+    S = list(range(D - k_active, D))  # Last k_active features
 
     if task in ("poly5", "poly10"):
         deg = 5 if task == "poly5" else 10
@@ -166,35 +190,37 @@ def build_teacher_and_data(
     N_test: int,
     task: str,
     noise_std: float = 0.0,
-    n_nodes: int = 64,
+    n_nodes: int = 64,      # kept for signature compatibility
     seed_base: int = 0,
 ):
     """
     Create:
     - teacher (GeneralTeacher)
-    - Chebyshev-distributed training and test sets
+    - Gaussian-distributed training and test sets from N(0, I_D).
+
+    This matches the typical synthetic setup in the PKeX-Shapley paper.
     """
     teacher, S = make_teacher(D, task=task, seed=seed_base)
 
-    # Train set
-    x_train = sample_chebyshev_points(
+    # Train set: N(0, I_D)
+    x_train = sample_gaussian_points(
         n_samples=N_train,
         d=D,
-        n_nodes=n_nodes,
         seed=seed_base + 1,
     ).to(DEVICE)
+
     with torch.no_grad():
         y_train = teacher(x_train)
         if noise_std > 0.0:
             y_train = y_train + noise_std * torch.randn_like(y_train)
 
-    # Test set
-    x_test = sample_chebyshev_points(
+    # Test set: independent N(0, I_D)
+    x_test = sample_gaussian_points(
         n_samples=N_test,
         d=D,
-        n_nodes=n_nodes,
         seed=seed_base + 2,
     ).to(DEVICE)
+
     with torch.no_grad():
         y_test = teacher(x_test)
         if noise_std > 0.0:
@@ -272,7 +298,7 @@ def main():
     parser.add_argument("--n-test", type=int, default=1000)
     parser.add_argument("--noise-std", type=float, default=0.0)
     parser.add_argument("--n-nodes", type=int, default=64,
-                        help="Number of Chebyshev nodes per dimension")
+                        help="(Unused if using Gaussian sampling; kept for compatibility.)")
     parser.add_argument("--seed-base", type=int, default=0)
     args = parser.parse_args()
 

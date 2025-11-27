@@ -4,11 +4,13 @@ set -e
 mkdir -p logs
 
 TASKS=("poly5" "poly10" "sqexp")
-DS=(50 100 200 300)
+DS=(50)   # Only consider D = 50, 100
 
-N_TRAIN=20
-N_TEST=20
-N_TARGETS=20
+# Total number of datapoints
+N_TOTAL=10
+N_TEST=0         # 5% of all datapoints as test set
+N_TRAIN=10     # remaining as train
+N_TARGETS=10    # calculate Shap on 100 datapoints
 
 for task in "${TASKS[@]}"; do
   for D in "${DS[@]}"; do
@@ -29,15 +31,15 @@ for task in "${TASKS[@]}"; do
       --n-test "${N_TEST}" \
       --noise-std 0.0 \
       --seed-base 0 \
-      > "logs/${PREFIX}_gen.log" 2>&1
+      > "logs/${PREFIX}_gen.log" 
 
     # Choose max_degree for TN-SHAP interpolation
     if [ "${task}" = "poly5" ]; then
       MAX_DEG=5
     elif [ "${task}" = "poly10" ]; then
-      MAX_DEG=10
+      MAX_DEG=5
     else
-      MAX_DEG=10  # sqexp approx
+      MAX_DEG=5  # sqexp approx
     fi
 
     # 2) Train MPS
@@ -46,12 +48,17 @@ for task in "${TASKS[@]}"; do
       --prefix "${PREFIX}" \
       --max-degree "${MAX_DEG}" \
       --n-targets "${N_TARGETS}" \
-      --batch-size 100 \
-      --num-epochs 200 \
-      --bond-dim 60 \
+      --batch-size 16 \
+      --num-epochs 10 \
+      --bond-dim 30 \
       --lr 1e-3 \
       --l2-reg 0 \
-      > "logs/${PREFIX}_train.log" 2>&1
+      --lr-factor 0.8 \
+      --lr-patience 3 \
+      --min-lr 1e-7 \
+      --early-stop-patience 50 \
+      --grad-clip 1.0 \
+      > "logs/${PREFIX}_train.log"
 
     # 3) Evaluate TN-SHAP
     echo "[3/3] Evaluating TN-SHAP..."

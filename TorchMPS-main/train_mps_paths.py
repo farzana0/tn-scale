@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
 """
-train_mps_paths.py
+train_mps_sqexp_paths.py
 
-Train an MPS on path-augmented data for TN-SHAP:
+Train an MPS on path-augmented data for TN-SHAP, for the *exponential* teacher.
 
-  For each base input x (from the original training set), we generate:
-    - h-path:  x_h(t) = t * x
-    - g_i paths: x_g^{(i)}(t)[j] = x[j] if j==i else t * x[j]
+Teacher paths (in ORIGINAL x-space):
+  - h(t)        = f(t * x)
+  - g_on_i(t)   = f(x_on_i(t))   where x_on_i(t)[j]  = x[j]    if j == i, else t * x[j]
+  - g_off_i(t)  = f(x_off_i(t))  where x_off_i(t)[j] = 0       if j == i, else t * x[j]
 
-for t in Chebyshev nodes in [0, 1], using the SAME chebyshev_nodes_unit_interval
-function as later used in TN-SHAP Vandermonde interpolation.
+This script now constructs ALL of these points, so that the grid used in the
+Gi-based TN-SHAP evaluation matches the grid used for training.
 
-Targets are y = teacher(x_path), so the MPS is explicitly trained
-on the exact path-queries TN-SHAP will make for these base points.
-
-We use:
-  - A subset of N_TARGETS training points as base points (default 100).
-  - All h and g_i paths for those base points.
-
-This version is deliberately SIMPLE and STABLE:
-  - No AMP, no compile, no fancy worker config.
-  - Gradient clipping.
-  - Divergence guard and best-checkpoint restore.
+We:
+  - Load sqexp teacher + data from poly_teacher.py.
+  - Sample N_base = n_targets base points x_base.
+  - Build Chebyshev nodes t in [0.2, 1.0].
+  - Construct all path points in ORIGINAL space for those base points:
+        - 1 h-path point per t
+        - D "on" Gi points per t
+        - D "off" Gi points per t
+  - Train an MPS on these (X_all, Y_all_scaled).
+  - Save everything under expo/:
+        expo/<prefix>_tnshap_targets.pt
+        expo/<prefix>_mps.pt
 """
 
 import argparse
+import os
 import time
 
 import torch
@@ -33,6 +36,8 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from torchmps import MPS
 from poly_teacher import load_teacher, load_data, DEVICE
+
+
 
 
 # -----------------------
@@ -48,24 +53,35 @@ def r2_score(y_true, y_pred) -> float:
     return float(1.0 - torch.mean((y_true - y_pred) ** 2) / (var + 1e-12))
 
 
-def chebyshev_nodes_unit_interval(n_nodes: int, device=None, dtype=torch.float32):
-    """
-    Chebyshev nodes of the first kind, mapped from [-1, 1] to [0, 1].
-    """
-    if device is None:
-        device = DEVICE
+def chebyshev_nodes_scaled(n_nodes, t_min=0.2, t_max=1.0, device=None, dtype=torch.float32):
     k = torch.arange(1, n_nodes + 1, dtype=torch.float64, device=device)
-    u = torch.cos((2.0 * k - 1.0) / (2.0 * n_nodes) * torch.pi)  # [-1,1]
-    t = (u + 1.0) / 2.0  # [0,1]
+    u = torch.cos((2.0 * k - 1.0) / (2.0 * n_nodes) * torch.pi)
+    u01 = (u + 1.0) / 2.0
+    t = t_min + (t_max - t_min) * u01
     return t.to(dtype).to(device)
 
 
-def augment_with_one(x: torch.Tensor) -> torch.Tensor:
+# (Currently unused, kept for future feature-map experiments)
+class ScalarMLPFeatureMap(nn.Module):
     """
-    x: (N, D) -> (N, D+1) with a leading 1 column.
+    Feature map: scalar -> MLP -> R^1
+
+    Architecture:
+      Linear(1, 32) -> ReLU -> Linear(32, 1)
     """
-    ones = torch.ones(x.shape[0], 1, device=x.device, dtype=x.dtype)
-    return torch.cat([ones, x], dim=1)
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(1, 32),
+            nn.ReLU(),
+            nn.Linear(32, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x shape: (...,)
+        x_in = x.unsqueeze(-1)           # (..., 1)
+        out = self.net(x_in)            # (..., 1)
+        return out                      # (..., 1)
 
 
 # -----------------------
@@ -75,76 +91,114 @@ def augment_with_one(x: torch.Tensor) -> torch.Tensor:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--prefix", type=str, default="poly",
-        help="Prefix used to load teacher/data and save MPS/targets."
+        "--prefix", type=str, default="sqexp_D50",
+        help="Prefix to load teacher/data and to name outputs (e.g. 'sqexp_D50')."
     )
     parser.add_argument(
-        "--max-degree", type=int, default=5,
+        "--max-degree", type=int, default=10,
         help="Polynomial degree in t for TN-SHAP interpolation."
     )
     parser.add_argument(
-        "--n-targets", type=int, default=100,
-        help="Number of base points whose paths we include for training."
+        "--n-targets", type=int, default=20,
+        help="Number of base points whose paths we include (M for Shapley eval)."
     )
-    parser.add_argument("--batch-size", type=int, default=2048)
-    parser.add_argument("--num-epochs", type=int, default=40)
-    parser.add_argument("--bond-dim", type=int, default=50)
-    parser.add_argument("--lr", type=float, default=5e-4)
-    parser.add_argument("--l2-reg", type=float, default=1e-2)
-    # Ignored but kept for compatibility with older scripts:
-    parser.add_argument("--num-workers", type=int, default=0)
-    parser.add_argument("--compile", action="store_true")
-    parser.add_argument(
-        "--divergence-factor", type=float, default=50.0,
-        help="If MSE exceeds this factor * best_MSE, treat as divergence and stop."
-    )
+    parser.add_argument("--batch-size", type=int, default=4096)
+    parser.add_argument("--num-epochs", type=int, default=200)
+    parser.add_argument("--bond-dim", type=int, default=60)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--l2-reg", type=float, default=0.0)
+    parser.add_argument("--seed", type=int, default=0)
+
+    # Scheduler & early stopping
+    parser.add_argument("--lr-factor", type=float, default=0.8,
+                        help="Factor for ReduceLROnPlateau / StepLR.")
+    parser.add_argument("--lr-patience", type=int, default=5,
+                        help="(Unused now; kept for compatibility).")
+    parser.add_argument("--min-lr", type=float, default=1e-7,
+                        help="Minimum learning rate (not enforced by StepLR).")
+    parser.add_argument("--early-stop-patience", type=int, default=30,
+                        help="Epochs without MSE improvement before early stop.")
+
+    # Gradient clipping
+    parser.add_argument("--grad-clip", type=float, default=5.0,
+                        help="Max gradient norm for clipping.")
+
+    # Divergence detection
+    parser.add_argument("--divergence-factor", type=float, default=50.0,
+                        help="If MSE exceeds this factor * best_MSE, treat as divergence.")
+    
+  
     args = parser.parse_args()
+    torch.manual_seed(args.seed)
+
+    expo_dir = "expo"
+    os.makedirs(expo_dir, exist_ok=True)
 
     print(f"Device: {DEVICE}")
     print(f"Prefix: {args.prefix}, max_degree={args.max_degree}, N_targets={args.n_targets}")
+    print(f"LR={args.lr}, LR factor={args.lr_factor}, "
+          f"min_lr={args.min_lr}, early_stop_patience={args.early_stop_patience}")
+    print(f"Grad clip: {args.grad_clip}, bond_dim={args.bond_dim}, l2_reg={args.l2_reg}")
 
     # ---------------------------------------------------------
     # 1) Load teacher and original data
     # ---------------------------------------------------------
     teacher = load_teacher(args.prefix)
-    x_train, y_train, x_test, y_test = load_data(args.prefix)
+    if isinstance(teacher, torch.nn.Module):
+        teacher.to(DEVICE)
 
+    x_train, y_train, x_test, y_test = load_data(args.prefix)
     x_train = x_train.to(DEVICE)
-    y_train = y_train.to(DEVICE)
 
     N_total, D = x_train.shape
     N_base = min(args.n_targets, N_total)
-    x_base = x_train[:N_base]  # (N_base, D)
+    perm = torch.randperm(N_total, device=DEVICE)
+    idxs = perm[:N_base]
+    x_base = x_train[idxs]  # (N_base, D)
 
     print(f"Using N_base={N_base} base points out of {N_total}, D={D}")
 
     # ---------------------------------------------------------
-    # 2) Build Chebyshev t in [0,1] for path augmentation
+    # 2) Build Chebyshev t in [0.2, 1.0] for path augmentation
     # ---------------------------------------------------------
-    N_T_NODES = args.max_degree + 1  # exact interpolation if degree <= max_degree
-    t_nodes = chebyshev_nodes_unit_interval(
-        N_T_NODES, device=DEVICE, dtype=x_base.dtype
+    # We need max_degree+1 distinct nodes for Vandermonde interpolation.
+    N_T_NODES = args.max_degree + 1
+    t_nodes = chebyshev_nodes_scaled(
+        n_nodes=N_T_NODES,
+        t_min=0.2,
+        t_max=1.0,
+        device=DEVICE,
+        dtype=x_base.dtype,
     )
     print(f"Using N_T_NODES={N_T_NODES} Chebyshev nodes in t for path augmentation.")
 
     # ---------------------------------------------------------
-    # 3) Construct path-augmented dataset: all h(t) and all g_i(t)
+    # 3) Construct path-augmented dataset:
+    #    for each x0, each t:
+    #       - 1 h-path       : t * x0
+    #       - D g_on_i paths : x_on_i(t)
+    #       - D g_off_i paths: x_off_i(t)
     # ---------------------------------------------------------
-    total_samples = (1 + D) * N_base * N_T_NODES
+    total_samples = (1 + 2 * D) * N_base * N_T_NODES
     X_all = torch.zeros(total_samples, D, device=DEVICE, dtype=x_base.dtype)
     Y_all = torch.zeros(total_samples, device=DEVICE, dtype=x_base.dtype)
 
     teacher.eval()
     idx = 0
 
-    print("Generating path-augmented dataset...")
+    print("Generating path-augmented dataset (h + g_on_i + g_off_i paths)...")
     with torch.no_grad():
         for b in range(N_base):
             x0 = x_base[b]  # (D,)
 
             for t in t_nodes:
-                # h-path
-                x_h = t * x0
+                # Base scaled vector for this t
+                base = t * x0  # (D,)
+
+                # -------------------
+                # h-path: x_h(t) = t * x0
+                # -------------------
+                x_h = base
                 y_h = teacher(x_h.unsqueeze(0)).squeeze(0)
                 if y_h.ndim > 0:
                     y_h = y_h.squeeze(-1)
@@ -152,81 +206,121 @@ def main():
                 Y_all[idx] = y_h
                 idx += 1
 
-                # g_i paths (vectorized)
-                x_g_batch = t * x0.unsqueeze(0).expand(D, -1).clone()  # (D, D)
-                x_g_batch[torch.arange(D), torch.arange(D)] = x0
-                y_g_batch = teacher(x_g_batch).squeeze(-1)
-                if y_g_batch.ndim > 1:
-                    y_g_batch = y_g_batch.squeeze(-1)
+                # -------------------
+                # g_on_i paths (vectorized)
+                #   x_on_i(t)[j] = x[j] if j == i else t * x[j]
+                # -------------------
+                x_on_batch = base.unsqueeze(0).expand(D, -1).clone()  # (D, D)
+                x_on_batch[torch.arange(D), torch.arange(D)] = x0     # clamp i to original x_i
+                y_on_batch = teacher(x_on_batch)
+                if y_on_batch.ndim > 1:
+                    y_on_batch = y_on_batch.squeeze(-1)
 
-                X_all[idx:idx + D] = x_g_batch
-                Y_all[idx:idx + D] = y_g_batch
+                X_all[idx:idx + D] = x_on_batch
+                Y_all[idx:idx + D] = y_on_batch
                 idx += D
 
+                # -------------------
+                # g_off_i paths (vectorized)
+                #   x_off_i(t)[j] = 0 if j == i else t * x[j]
+                # -------------------
+                x_off_batch = base.unsqueeze(0).expand(D, -1).clone()  # (D, D)
+                x_off_batch[torch.arange(D), torch.arange(D)] = 0.0    # clamp i to baseline 0
+                y_off_batch = teacher(x_off_batch)
+                if y_off_batch.ndim > 1:
+                    y_off_batch = y_off_batch.squeeze(-1)
+
+                X_all[idx:idx + D] = x_off_batch
+                Y_all[idx:idx + D] = y_off_batch
+                idx += D
+
+    assert idx == total_samples, "Index mismatch when building path-augmented dataset."
+
     print(
-        f"Path-augmented dataset size (h + g_i paths): "
-        f"{X_all.shape[0]} points = (1 + D)*N_base*N_T_NODES"
+        f"Path-augmented dataset size (h + g_on_i + g_off_i): "
+        f"{X_all.shape[0]} points = (1 + 2D) * N_base * N_T_NODES"
     )
 
     # ---------------------------------------------------------
-    # 4) Train MPS on X_all
+    # 3.5) Scale outputs to avoid exploding magnitudes
     # ---------------------------------------------------------
-    X_all_aug = augment_with_one(X_all)  # (N_all, D+1)
-    D_aug = X_all_aug.shape[1]
+    with torch.no_grad():
+        Y_abs_max = torch.max(Y_all.abs())
+        if Y_abs_max <= 0:
+            Y_scale = torch.tensor(1.0, device=DEVICE, dtype=Y_all.dtype)
+        else:
+            Y_scale = Y_abs_max
 
-    # Keep tensors on DEVICE and use a simple DataLoader
-    train_ds = TensorDataset(X_all_aug, Y_all)
+    print(f"Scaling path-augmented targets by Y_scale = {Y_scale.item():.3e}")
+    Y_all_scaled = Y_all / Y_scale
+
+    # ---------------------------------------------------------
+    # 4) Train MPS on ORIGINAL X_all with sqexp feature map
+    # ---------------------------------------------------------
+    train_ds = TensorDataset(X_all, Y_all_scaled)
     train_loader = DataLoader(
         train_ds,
-        batch_size=args.batch_size,
+        batch_size=min(args.batch_size, X_all.shape[0]),  # full-batch if batch_size > N
         shuffle=True,
         drop_last=False,
         num_workers=0,
     )
 
+    # Use simple identity-style feature map inside MPS (default [x, x^2])
     mps = MPS(
-        input_dim=D_aug,
+        input_dim=D,
         output_dim=1,
         bond_dim=args.bond_dim,
         adaptive_mode=False,
         periodic_bc=False,
-    ).to(DEVICE)
+        feature_dim=2,        # default embedding: [x, x^2]
+        parallel_eval=True,
+    )
+
+    mps.to(DEVICE)
 
     loss_fun = nn.MSELoss()
     optimizer = torch.optim.Adam(
         mps.parameters(), lr=args.lr, weight_decay=args.l2_reg
     )
 
-    max_grad_norm = 1.0  # gradient clipping
+    # StepLR: reduce LR every 50 epochs
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer,
+        step_size=50,
+        gamma=args.lr_factor,
+        verbose=True,
+    )
+
+    max_grad_norm = args.grad_clip
     print(
-        f"\nTraining MPS on path-augmented regression\n"
-        f"D_aug={D_aug}, bond_dim={args.bond_dim}, "
-        f"N_train={X_all_aug.shape[0]} (no held-out test set)\n"
+        f"\nTraining MPS on sqexp path-augmented regression\n"
+        f"D={D} (original space), bond_dim={args.bond_dim}, "
+        f"N_train={X_all.shape[0]} (no held-out test set)\n"
     )
 
     train_start = time.time()
     best_mse = float("inf")
-    best_r2 = -float("inf")
     best_epoch = 0
     best_state = None
+    epochs_no_improve = 0
 
     for epoch in range(1, args.num_epochs + 1):
         mps.train()
         train_loss = 0.0
         n_seen = 0
+        grad_norms = []
 
         for xb, yb in train_loader:
-            xb = xb.to(DEVICE)
-            yb = yb.to(DEVICE)
-
             preds = mps(xb).squeeze(-1)
             loss = loss_fun(preds, yb)
 
             optimizer.zero_grad()
             loss.backward()
 
-            # Clip gradients for stability
-            torch.nn.utils.clip_grad_norm_(mps.parameters(), max_grad_norm)
+            # Clip gradients
+            total_norm = torch.nn.utils.clip_grad_norm_(mps.parameters(), max_grad_norm)
+            grad_norms.append(total_norm.item())
 
             optimizer.step()
 
@@ -235,49 +329,49 @@ def main():
 
         train_mse = train_loss / max(n_seen, 1)
 
-        # Evaluate R² on whole training set (batched)
-        mps.eval()
-        with torch.no_grad():
-            y_true_list = []
-            y_pred_list = []
-            for xb_eval, yb_eval in train_loader:
-                xb_eval = xb_eval.to(DEVICE)
-                yb_eval = yb_eval.to(DEVICE)
-                p_eval = mps(xb_eval).squeeze(-1)
-                y_true_list.append(yb_eval)
-                y_pred_list.append(p_eval)
+        # Scheduler step
+        scheduler.step()
+        current_lr = optimizer.param_groups[0]["lr"]
+        avg_grad_norm = sum(grad_norms) / len(grad_norms) if grad_norms else 0.0
 
-            Y_all_eval = torch.cat(y_true_list, dim=0)
-            preds_all = torch.cat(y_pred_list, dim=0)
-            train_r2 = r2_score(Y_all_eval, preds_all)
-
-        # Track best model & divergence
+        # Track best model based on MSE
         improved = False
-        if train_r2 > best_r2 + 1e-5:
-            best_r2 = train_r2
+        if train_mse < best_mse - 1e-7:
             best_mse = train_mse
             best_epoch = epoch
             best_state = {k: v.detach().cpu().clone() for k, v in mps.state_dict().items()}
             improved = True
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
 
-        if (not torch.isfinite(torch.tensor(train_mse))) or \
+        if (not torch.isfinite(torch.tensor(train_mse, device=DEVICE))) or \
            (best_mse < float("inf") and train_mse > args.divergence_factor * best_mse):
             print("\n⚠️  Detected divergence (loss explosion).")
             print(f"Stopping at epoch {epoch}. Restoring best model from epoch {best_epoch} "
-                  f"(MSE={best_mse:.5f}, R²={best_r2:.4f})")
+                  f"(MSE={best_mse:.5f})")
             break
 
         elapsed = int(time.time() - train_start)
         print(f"### Epoch {epoch:03d} ###")
         print(f"Train MSE: {train_mse:.5f}")
-        print(f"Train R2 (on path-augmented data): {train_r2:.4f}")
-        print(f"Best so far: epoch {best_epoch}, MSE={best_mse:.5f}, R²={best_r2:.4f}, "
-              f"{'Improved' if improved else 'No improve'}")
+        print(f"Avg grad norm: {avg_grad_norm:.4f} | LR: {current_lr:.2e}")
+        print(
+            f"Best so far: epoch {best_epoch}, MSE={best_mse:.5f}, "
+            f"{'✓ Improved' if improved else 'No improve'} | "
+            f"No improve count: {epochs_no_improve}/{args.early_stop_patience}"
+        )
         print(f"Runtime so far: {elapsed} sec\n")
 
-        # Soft early-exit if we’re already very good
-        if best_r2 > 0.995 and epoch >= 10:
-            print(f"\n✓ Early exit: reached high R²={best_r2:.4f} at epoch {best_epoch}")
+        if epochs_no_improve >= args.early_stop_patience:
+            print(
+                f"\n⚠️ Early stopping at epoch {epoch}. "
+                f"Restoring best model from epoch {best_epoch} (MSE={best_mse:.5f})."
+            )
+            break
+
+        if best_mse < 1e-10 and epoch >= 50:
+            print(f"\n✓ Early exit: reached very low MSE={best_mse:.10f} at epoch {best_epoch}")
             break
 
     # ---------------------------------------------------------
@@ -285,38 +379,62 @@ def main():
     # ---------------------------------------------------------
     if best_state is not None:
         mps.load_state_dict({k: v.to(DEVICE) for k, v in best_state.items()})
-        print(f"\nRestored best MPS from epoch {best_epoch} "
-              f"(MSE={best_mse:.5f}, R²={best_r2:.4f})")
+        print(f"\nRestored best MPS from epoch {best_epoch} (MSE={best_mse:.5f})")
     else:
         print("\n⚠️ No best_state recorded; using last epoch parameters.")
 
     # ---------------------------------------------------------
-    # 5) Save TN-SHAP targets and full training dataset
+    # Compute final R² on full training set
     # ---------------------------------------------------------
-    torch.save(
-        {
-            "x_base": x_base.detach().cpu(),   # (N_base, D)
-            "t_nodes": t_nodes.detach().cpu(), # (N_T_NODES,)
-            "X_all": X_all.detach().cpu(),     # ((1+D)*N_base*N_T_NODES, D)
-            "Y_all": Y_all.detach().cpu(),     # same length
-            "max_degree": args.max_degree,
-        },
-        f"{args.prefix}_tnshap_targets.pt",
-    )
-    print(f"Saved TN-SHAP targets and t-nodes to {args.prefix}_tnshap_targets.pt")
+    print("\nComputing final R² on training set...")
+    mps.eval()
+    with torch.no_grad():
+        y_true_list = []
+        y_pred_list = []
+        for xb_eval, yb_eval in train_loader:
+            p_eval = mps(xb_eval).squeeze(-1)
+            y_true_list.append(yb_eval)
+            y_pred_list.append(p_eval)
+
+        Y_all_eval = torch.cat(y_true_list, dim=0)
+        preds_all = torch.cat(y_pred_list, dim=0)
+        final_r2 = r2_score(Y_all_eval, preds_all)
+
+    print(f"Final Train R² (on path-augmented data): {final_r2:.6f}")
 
     # ---------------------------------------------------------
-    # 6) Save trained MPS
+    # 5) Save TN-SHAP targets and full training dataset (under expo/)
     # ---------------------------------------------------------
+    tnshap_path = os.path.join(expo_dir, f"{args.prefix}_tnshap_targets.pt")
+    torch.save(
+        {
+            "x_base": x_base.detach().cpu(),    # (N_base, D)
+            "t_nodes": t_nodes.detach().cpu(),  # (N_T_NODES,)
+            "X_all": X_all.detach().cpu(),      # ((1+2D)*N_base*N_T_NODES, D)
+            "Y_all": Y_all.detach().cpu(),      # ORIGINAL teacher values
+            "Y_scale": Y_scale.detach().cpu(),  # global scale used for training
+            "max_degree": args.max_degree,
+            "feature_map": "sqexp_x2exp_then_one",
+        },
+        tnshap_path,
+    )
+
+    print(f"Saved TN-SHAP targets and t-nodes to {tnshap_path}")
+
+    # ---------------------------------------------------------
+    # 6) Save trained MPS (under expo/)
+    # ---------------------------------------------------------
+    mps_path = os.path.join(expo_dir, f"{args.prefix}_mps.pt")
     torch.save(
         {
             "state_dict": mps.state_dict(),
-            "D_aug": D_aug,
+            "input_dim": D,
             "bond_dim": args.bond_dim,
+            "feature_map": "sqexp_x2exp_then_one",
         },
-        f"{args.prefix}_mps.pt",
+        mps_path,
     )
-    print(f"Saved trained MPS to {args.prefix}_mps.pt")
+    print(f"Saved trained MPS to {mps_path}")
     print("Done.")
 
 

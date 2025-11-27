@@ -1,18 +1,142 @@
 Device: cuda
-Prefix: sqexp_D100, max_degree=10, N_targets=20
-Using N_base=20 base points out of 20, D=100
+Prefix: sqexp_D100
+Batch size: 100, Num epochs: 20
+Bond dim: 60, LR: 0.0001, L2: 0.0
+
+Base points: N_base_total=105, using N_base=100, D=100
 Using N_T_NODES=11 Chebyshev nodes in t for path augmentation.
-Generating path-augmented dataset...
-Path-augmented dataset size (h + g_i paths): 22220 points = (1 + D)*N_base*N_T_NODES
+Feature map: sqexp_exp_then_one
+
+Path-augmented dataset size (h + g_i paths): 111100 points = (1 + D)*N_base*N_T_NODES
+Feature-space dim D_aug=200
 
 Training MPS on path-augmented regression
-D_aug=101, bond_dim=60, N_train=22220 (no held-out test set)
+N_train=111100, D_aug=200, bond_dim=60
+LR=0.0001, L2=0.0
+Early stopping patience=50, LR patience=20, factor=0.5
+
+### Epoch 001 ###
+Train MSE (normalized y): 1.065114e+00 | R²: -0.001189
+Avg grad norm: 33.5717 | LR: 1.00e-04
+Best R²: -0.001189 (epoch 1) | No improve: 0/50
+Runtime so far: 30 sec
+
+### Epoch 002 ###
+Train MSE (normalized y): 9.970689e-01 | R²: 0.004018
+Avg grad norm: 1.8839 | LR: 1.00e-04
+Best R²: 0.004018 (epoch 2) | No improve: 0/50
+Runtime so far: 62 sec
+
+### Epoch 003 ###
+Train MSE (normalized y): 9.876174e-01 | R²: 0.035924
+Avg grad norm: 2.4980 | LR: 1.00e-04
+Best R²: 0.035924 (epoch 3) | No improve: 0/50
+Runtime so far: 96 sec
+
+### Epoch 004 ###
+Train MSE (normalized y): 9.876045e-01 | R²: 0.077887
+Avg grad norm: 8.1768 | LR: 1.00e-04
+Best R²: 0.077887 (epoch 4) | No improve: 0/50
+Runtime so far: 128 sec
+
+### Epoch 005 ###
+Train MSE (normalized y): 9.745238e-01 | R²: 0.046237
+Avg grad norm: 3.8545 | LR: 1.00e-04
+Best R²: 0.077887 (epoch 4) | No improve: 1/50
+Runtime so far: 159 sec
+
+### Epoch 006 ###
+Train MSE (normalized y): 9.513607e-01 | R²: 0.176431
+Avg grad norm: 8.4408 | LR: 1.00e-04
+Best R²: 0.176431 (epoch 6) | No improve: 0/50
+Runtime so far: 189 sec
+
+### Epoch 007 ###
+Train MSE (normalized y): 9.504866e-01 | R²: 0.122830
+Avg grad norm: 7.2790 | LR: 1.00e-04
+Best R²: 0.176431 (epoch 6) | No improve: 1/50
+Runtime so far: 219 sec
+
+### Epoch 008 ###
+Train MSE (normalized y): 9.332856e-01 | R²: 0.225262
+Avg grad norm: 10.8803 | LR: 1.00e-04
+Best R²: 0.225262 (epoch 8) | No improve: 0/50
+Runtime so far: 250 sec
+
+### Epoch 009 ###
+Train MSE (normalized y): 8.471936e-01 | R²: 0.365562
+Avg grad norm: 18.0508 | LR: 1.00e-04
+Best R²: 0.365562 (epoch 9) | No improve: 0/50
+Runtime so far: 280 sec
+
+### Epoch 010 ###
+Train MSE (normalized y): 7.441369e-01 | R²: 0.274688
+Avg grad norm: 32.8083 | LR: 1.00e-04
+Best R²: 0.365562 (epoch 9) | No improve: 1/50
+Runtime so far: 310 sec
+
+### Epoch 011 ###
+Train MSE (normalized y): 8.740270e-01 | R²: 0.076353
+Avg grad norm: 16.1297 | LR: 1.00e-04
+Best R²: 0.365562 (epoch 9) | No improve: 2/50
+Runtime so far: 341 sec
+
+### Epoch 012 ###
+Train MSE (normalized y): 8.467691e-01 | R²: 0.284043
+Avg grad norm: 16.9218 | LR: 1.00e-04
+Best R²: 0.365562 (epoch 9) | No improve: 3/50
+Runtime so far: 374 sec
+
+### Epoch 013 ###
+Train MSE (normalized y): 8.225452e-01 | R²: 0.197476
+Avg grad norm: 25.4175 | LR: 1.00e-04
+Best R²: 0.365562 (epoch 9) | No improve: 4/50
+Runtime so far: 404 sec
+
+### Epoch 014 ###
+Train MSE (normalized y): 8.549965e-01 | R²: 0.687160
+Avg grad norm: 18.8676 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 0/50
+Runtime so far: 441 sec
+
+### Epoch 015 ###
+Train MSE (normalized y): 9.096129e-01 | R²: -0.342960
+Avg grad norm: 11.6791 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 1/50
+Runtime so far: 471 sec
+
+### Epoch 016 ###
+Train MSE (normalized y): 6.043773e-01 | R²: 0.412427
+Avg grad norm: 40.4650 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 2/50
+Runtime so far: 501 sec
+
+### Epoch 017 ###
+Train MSE (normalized y): 8.279875e-01 | R²: 0.368837
+Avg grad norm: 21.2462 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 3/50
+Runtime so far: 531 sec
+
+### Epoch 018 ###
+Train MSE (normalized y): 7.471512e-01 | R²: 0.606242
+Avg grad norm: 32.3440 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 4/50
+Runtime so far: 563 sec
+
+### Epoch 019 ###
+Train MSE (normalized y): 2.542062e-01 | R²: -1.575362
+Avg grad norm: 58.4815 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 5/50
+Runtime so far: 593 sec
+
+### Epoch 020 ###
+Train MSE (normalized y): 8.968053e-01 | R²: -14.104462
+Avg grad norm: 19.3310 | LR: 1.00e-04
+Best R²: 0.687160 (epoch 14) | No improve: 6/50
+Runtime so far: 627 sec
 
 
-⚠️  Detected divergence (loss explosion).
-Stopping at epoch 1. Restoring best model from epoch 0 (MSE=inf, R²=-inf)
-
-⚠️ No best_state recorded; using last epoch parameters.
-Saved TN-SHAP targets and t-nodes to sqexp_D100_tnshap_targets.pt
+✓ Training complete. Restoring best model from epoch 14 (R²=0.687160).
+Saved TN-SHAP targets to sqexp_D100_tnshap_targets.pt
 Saved trained MPS to sqexp_D100_mps.pt
 Done.
