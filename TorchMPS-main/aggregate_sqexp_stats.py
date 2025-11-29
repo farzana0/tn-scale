@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import os
 import glob
+import re
 import argparse
 import numpy as np
+
 
 def parse_train_time(log_path):
     if not os.path.exists(log_path):
@@ -16,6 +18,7 @@ def parse_train_time(log_path):
                     return None
     return None
 
+
 def parse_eval_time(log_path):
     if not os.path.exists(log_path):
         return None
@@ -27,6 +30,7 @@ def parse_eval_time(log_path):
                 except ValueError:
                     return None
     return None
+
 
 def parse_mps_accuracy(log_path):
     """
@@ -46,6 +50,27 @@ def parse_mps_accuracy(log_path):
                     pass
     return acc
 
+
+def parse_mps_r2(log_path):
+    """
+    For logs with lines like:
+      MPS vs path-aug ground truth:     R2 = 0.9729
+    """
+    if not os.path.exists(log_path):
+        return None
+    r2 = None
+    pattern = re.compile(r"MPS vs path-aug ground truth:\s*R2\s*=\s*([0-9]*\.?[0-9]+)")
+    with open(log_path, "r") as f:
+        for line in f:
+            m = pattern.search(line)
+            if m:
+                try:
+                    r2 = float(m.group(1))
+                except ValueError:
+                    pass
+    return r2
+
+
 def summarize(arr):
     if len(arr) == 0:
         return None, None
@@ -54,14 +79,23 @@ def summarize(arr):
     std = arr.std(ddof=1) if len(arr) > 1 else 0.0
     return mean, std
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", type=str, default="sqexp")
     parser.add_argument("--D", type=int, default=50)
-    parser.add_argument("--log-dir", type=str, default="expo/logs",
-                        help="Directory where *_eval_sqexp.log and *_train_sqexp.log live")
-    parser.add_argument("--out-dir", type=str, default=".",
-                        help="Where to write the summary txt file")
+    parser.add_argument(
+        "--log-dir",
+        type=str,
+        default="expo/logs",
+        help="Directory where *_eval_sqexp.log and *_train_sqexp.log live",
+    )
+    parser.add_argument(
+        "--out-dir",
+        type=str,
+        default=".",
+        help="Where to write the summary txt file",
+    )
     args = parser.parse_args()
 
     # patterns we try for eval logs:
@@ -82,6 +116,7 @@ def main():
         return
 
     accs = []
+    r2s = []
     train_times = []
     eval_times = []
 
@@ -90,15 +125,19 @@ def main():
         train_log = eval_log.replace("_eval_sqexp.log", "_train_sqexp.log")
 
         acc = parse_mps_accuracy(eval_log)
+        r2 = parse_mps_r2(eval_log)
         t_train = parse_train_time(train_log)
         t_eval = parse_eval_time(eval_log)
 
-        if acc is None or t_train is None or t_eval is None:
-            print(f"[WARN] Skipping {os.path.basename(eval_log)} "
-                  f"(acc={acc}, train={t_train}, eval={t_eval})")
+        if acc is None or r2 is None or t_train is None or t_eval is None:
+            print(
+                f"[WARN] Skipping {os.path.basename(eval_log)} "
+                f"(acc={acc}, r2={r2}, train={t_train}, eval={t_eval})"
+            )
             continue
 
         accs.append(acc)
+        r2s.append(r2)
         train_times.append(t_train)
         eval_times.append(t_eval)
 
@@ -112,10 +151,12 @@ def main():
         return
 
     acc_mean, acc_std = summarize(accs)
+    r2_mean, r2_std = summarize(r2s)
     train_mean, _ = summarize(train_times)
     eval_mean, _ = summarize(eval_times)
 
     print(f"MPS Shapley accuracy: mean={acc_mean:.4f}, std={acc_std:.4f}")
+    print(f"MPS R2 (path-aug):    mean={r2_mean:.4f}, std={r2_std:.4f}")
     print(f"Training time (s):    mean={train_mean:.2f}")
     print(f"Evaluation time (s):  mean={eval_mean:.2f}")
 
@@ -130,11 +171,14 @@ def main():
         f.write("\n")
         f.write(f"MPS Shapley accuracy mean: {acc_mean:.6f}\n")
         f.write(f"MPS Shapley accuracy std:  {acc_std:.6f}\n")
+        f.write(f"MPS R2 (path-aug) mean:    {r2_mean:.6f}\n")
+        f.write(f"MPS R2 (path-aug) std:     {r2_std:.6f}\n")
         f.write(f"Training time mean (s):    {train_mean:.6f}\n")
         f.write(f"Evaluation time mean (s):  {eval_mean:.6f}\n")
 
     print()
     print(f"Wrote summary to {summary_path}")
+
 
 if __name__ == "__main__":
     main()

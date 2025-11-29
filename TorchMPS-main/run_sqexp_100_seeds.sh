@@ -10,7 +10,7 @@ LOG_DIR="${EXPO_DIR}/logs"
 mkdir -p "${EXPO_DIR}" "${LOG_DIR}"
 
 TASK="sqexp"
-D=50
+D=100
 
 # Total number of datapoints used to build the teacher dataset
 N_TOTAL=1
